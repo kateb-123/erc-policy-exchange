@@ -1,0 +1,15 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Node (if used for tooling)
+node_modules/
+npm-debug.log*
+*.log
+
+# Local, machine-specific Claude settings (launch.json is kept — it's shareable)
+.claude/settings.local.json

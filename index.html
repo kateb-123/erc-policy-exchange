@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ERC Policy Exchange</title>
+  <meta
+    name="description"
+    content="Education Research Center — Policy Exchange: a filterable, spreadsheet-driven feed of education opportunities, new policy research, headlines, and upcoming events."
+  />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Work+Sans:wght@500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="site-header__inner">
+      <p class="site-header__eyebrow">Education Research Center</p>
+      <h1 class="site-header__title">Policy Exchange</h1>
+      <p class="site-header__tagline">
+        Research, News, &amp; Opportunities — a filterable feed of education
+        opportunities, new policy research, headlines, and upcoming events.
+        Driven by a single spreadsheet.
+      </p>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="layout">
+      <!-- Left rail: refine within the active category -->
+      <aside class="rail" aria-label="Refine the feed">
+        <div class="rail__group">
+          <h2 class="rail__label" id="search-label">Search</h2>
+          <div class="search-wrap">
+            <input
+              type="search"
+              class="search-input"
+              id="news-search"
+              placeholder="Search headlines &amp; blurbs…"
+              aria-labelledby="search-label"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+        <div class="rail__group">
+          <label class="rail__label" for="news-source">Source</label>
+          <select class="rail-select" id="news-source"></select>
+        </div>
+        <div class="rail__group">
+          <label class="rail__label" for="news-topic">Topic</label>
+          <select class="rail-select" id="news-topic"></select>
+        </div>
+        <div class="rail__group">
+          <label class="rail__label" for="news-subtype">Sub-category</label>
+          <select class="rail-select" id="news-subtype"></select>
+        </div>
+        <div class="rail__group">
+          <label class="rail__label" for="news-sort">Sort by date</label>
+          <select class="rail-select" id="news-sort">
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+          </select>
+        </div>
+        <button class="rail__reset" id="news-reset" type="button">Clear filters</button>
+      </aside>
+
+      <!-- Results: category tabs + feed -->
+      <div class="results">
+        <div class="news-tabs" id="news-tabs" role="tablist" aria-label="Categories"></div>
+        <div class="results__meta">
+          <p class="results__count" id="news-count" aria-live="polite" role="status"></p>
+        </div>
+        <div class="news-list" id="news-list"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>
+      Education Research Center, Texas A&amp;M University. Content is CSV-driven —
+      edit <code>data/news.csv</code> to update this feed.
+    </p>
+  </footer>
+
+  <script src="js/csv.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
