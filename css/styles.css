@@ -274,8 +274,7 @@ main {
 .news-item {
   background: var(--card);
   border: 1px solid var(--line-soft);
-  border-left: 4px solid var(--maroon);
-  border-radius: 0 var(--radius) var(--radius) 0;
+  border-radius: var(--radius);
   box-shadow: var(--shadow);
   overflow: hidden;
   transition: box-shadow 0.15s ease;

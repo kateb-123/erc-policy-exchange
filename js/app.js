@@ -6,24 +6,21 @@
  * is CSV-driven: edit data/news.csv, reload, done.
  *
  * Interaction: category tabs across the top pick the stream; the
- * left rail (search + source + topic + sub-category + sort)
- * refines within it. Cards expand in place.
+ * left rail (search + sub-category) refines within it. Cards expand
+ * in place; the feed is sorted newest-first.
  *
  * Deep-link params (so a newsletter can link straight to a view):
  *   ?type=opportunity   category tab (opportunity/research/headline/event)
- *   ?source=NBER        source/outlet filter
- *   ?topic=…            topic filter
  *   ?subtype=…          sub-category filter
- *   ?sort=oldest        date sort (newest|oldest)
  *   ?q=teacher          keyword search
  * ============================================================ */
 
 const NEWS_CSV = "data/news.csv";
 
-// Category tabs across the top. "all" shows everything; the rest
-// mirror the ERC newsletter's timely sections.
+// Category tabs across the top — you view one stream at a time (the
+// categories are distinct enough that a mixed "All" view isn't useful).
+// These mirror the ERC newsletter's timely sections.
 const NEWS_TABS = [
-  { value: "all", label: "All" },
   { value: "opportunity", label: "Opportunities" },
   { value: "event", label: "Upcoming Events" },
   { value: "research", label: "New policy research" },
@@ -33,11 +30,8 @@ const NEWS_TABS = [
 // Single source of truth for what's shown.
 const state = {
   items: [],
-  type: "all", // active category tab
-  source: "all",
-  topic: "all",
-  subtype: "all",
-  sort: "newest",
+  type: NEWS_TABS[0].value, // active category tab (defaults to the first)
+  subtype: "all", // sub-category dropdown (scoped to the active tab)
   q: "",
 };
 
@@ -82,21 +76,14 @@ function readURL() {
   const type = (p.get("type") || "").toLowerCase();
   if (NEWS_TABS.some((t) => t.value === type)) state.type = type;
   state.q = p.get("q") || "";
-  state.source = p.get("source") || "all";
-  state.topic = p.get("topic") || "all";
   state.subtype = p.get("subtype") || "all";
-  const sort = p.get("sort");
-  if (sort === "oldest" || sort === "newest") state.sort = sort;
 }
 
 function writeURL() {
   const p = new URLSearchParams();
-  if (state.type !== "all") p.set("type", state.type);
+  if (state.type !== NEWS_TABS[0].value) p.set("type", state.type);
   if (state.q.trim()) p.set("q", state.q.trim());
-  if (state.source !== "all") p.set("source", state.source);
-  if (state.topic !== "all") p.set("topic", state.topic);
   if (state.subtype !== "all") p.set("subtype", state.subtype);
-  if (state.sort !== "newest") p.set("sort", state.sort);
   const qs = p.toString();
   const url = qs ? `${window.location.pathname}?${qs}` : window.location.pathname;
   window.history.replaceState(null, "", url);
@@ -109,7 +96,7 @@ function init(rows) {
   state.items = rows;
 
   buildTabs();
-  buildFilters();
+  rebuildSubtypes();
 
   $("#news-search").value = state.q;
   $("#news-search").addEventListener("input", (e) => {
@@ -118,23 +105,11 @@ function init(rows) {
     writeURL();
   });
 
-  bindSelect("#news-source", "source");
-  bindSelect("#news-topic", "topic");
   bindSelect("#news-subtype", "subtype");
-  bindSelect("#news-sort", "sort");
 
   $("#news-reset").addEventListener("click", () => {
-    Object.assign(state, {
-      source: "all",
-      topic: "all",
-      subtype: "all",
-      sort: "newest",
-      q: "",
-    });
+    Object.assign(state, { subtype: "all", q: "" });
     $("#news-search").value = "";
-    $("#news-source").value = "all";
-    $("#news-topic").value = "all";
-    $("#news-sort").value = "newest";
     rebuildSubtypes();
     render();
     writeURL();
@@ -166,7 +141,7 @@ function buildTabs() {
   });
 
   el.innerHTML = NEWS_TABS.map((t) => {
-    const count = t.value === "all" ? state.items.length : counts[t.value] || 0;
+    const count = counts[t.value] || 0;
     return `
       <button
         type="button"
@@ -217,19 +192,11 @@ function fillSelect(el, allLabel, values, current) {
   el.value = values.includes(current) ? current : "all";
 }
 
-function buildFilters() {
-  fillSelect($("#news-source"), "All sources", distinct("source"), state.source);
-  fillSelect($("#news-topic"), "All topics", distinct("topic"), state.topic);
-  $("#news-sort").value = state.sort;
-  rebuildSubtypes();
-}
-
 // Sub-category options = the newsletter groups within the active category.
 function rebuildSubtypes() {
-  const items =
-    state.type === "all"
-      ? state.items
-      : state.items.filter((it) => (it.type || "").toLowerCase() === state.type);
+  const items = state.items.filter(
+    (it) => (it.type || "").toLowerCase() === state.type
+  );
   const subs = distinct("subtype", items);
   const sel = $("#news-subtype");
   fillSelect(sel, "All sub-categories", subs, state.subtype);
@@ -241,23 +208,18 @@ function rebuildSubtypes() {
  * Filter + render
  * ------------------------------------------------------------ */
 function filter() {
-  const { type, source, topic, subtype, sort, q } = state;
+  const { type, subtype, q } = state;
   const out = state.items.filter((it) => {
-    const typeOk = type === "all" || (it.type || "").toLowerCase() === type;
-    const srcOk = source === "all" || (it.source || "").trim() === source;
-    const topOk = topic === "all" || (it.topic || "").trim() === topic;
+    const typeOk = (it.type || "").toLowerCase() === type;
     const subOk = subtype === "all" || (it.subtype || "").trim() === subtype;
     const qOk =
       !q.trim() ||
       matches(it.headline || "", q) ||
       matches(it.blurb || "", q) ||
-      matches(it.source || "", q) ||
-      matches(it.topic || "", q);
-    return typeOk && srcOk && topOk && subOk && qOk;
+      matches(it.source || "", q);
+    return typeOk && subOk && qOk;
   });
-  out.sort((a, b) =>
-    sort === "oldest" ? (a.date < b.date ? -1 : 1) : a.date < b.date ? 1 : -1
-  );
+  out.sort((a, b) => (a.date < b.date ? 1 : -1)); // newest first
   return out;
 }
 
