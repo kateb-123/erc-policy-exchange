@@ -248,63 +248,72 @@ function render() {
     return;
   }
 
-  list.innerHTML = results
+  const rows = results
     .map((it, i) => {
       const type = (it.type || "").toLowerCase();
       const link = (it.link || "").trim();
       const source = (it.source || "").trim();
       const subtype = (it.subtype || "").trim();
-      const bodyId = `news-body-${i}`;
+      const detailId = `feed-detail-${i}`;
       // The active tab already tells you the category, so the pill shows the
       // sub-category (Funding & Grants, Webinar, Working Papers, Federal…),
       // each in its own colour. Falls back to the type if no subtype.
       const pillText = subtype || type;
       const pillClass = colorFor[subtype] || "tag--c0";
-      const sourceHTML = source
-        ? `<span class="news-item__source">Source: ${esc(source)}</span>`
-        : "";
       const linkHTML = link
-        ? `<a class="news-item__link" href="${esc(link)}" target="_blank" rel="noopener noreferrer">Read the source ↗</a>`
+        ? `<a class="feed-link" href="${esc(link)}" target="_blank" rel="noopener noreferrer">Read the source ↗</a>`
         : "";
       return `
-        <article class="news-item">
-          <button
-            type="button"
-            class="news-item__summary"
-            aria-expanded="false"
-            aria-controls="${bodyId}"
-          >
-            <span class="news-item__heading">
-              <span class="news-item__top">
-                <span class="tag ${pillClass}">${esc(pillText)}</span>
-                <time class="news-item__date" datetime="${esc(it.date)}">${formatDate(
-        it.date
-      )}</time>
-              </span>
-              <span class="news-item__headline">${esc(it.headline)}</span>
-              ${sourceHTML}
-            </span>
-            ${chevronIcon()}
-          </button>
-          <div class="news-item__body" id="${bodyId}" hidden>
-            <p class="news-item__blurb">${esc(it.blurb)}</p>
+        <tr class="feed-row" role="button" tabindex="0" aria-expanded="false" aria-controls="${detailId}">
+          <td class="feed-cell-cat"><span class="tag ${pillClass}">${esc(pillText)}</span></td>
+          <td class="feed-cell-date">${formatDate(it.date)}</td>
+          <td class="feed-cell-title">${esc(it.headline)}</td>
+          <td class="feed-cell-source">${esc(source)}</td>
+          <td class="feed-cell-caret">${chevronIcon()}</td>
+        </tr>
+        <tr class="feed-detail" id="${detailId}" hidden>
+          <td colspan="5">
+            <p class="feed-detail__blurb">${esc(it.blurb)}</p>
             ${linkHTML}
-          </div>
-        </article>`;
+          </td>
+        </tr>`;
     })
     .join("");
 
-  wireExpanders(list, ".news-item__summary");
+  list.innerHTML = `
+    <div class="feed-scroll">
+      <table class="feed-table">
+        <thead>
+          <tr>
+            <th scope="col">Category</th>
+            <th scope="col">Date</th>
+            <th scope="col">Title</th>
+            <th scope="col">Source</th>
+            <th scope="col"></th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+
+  wireRows(list);
 }
 
-// Toggle a summary button's expanded state and show/hide its body panel.
-function wireExpanders(root, summarySelector) {
-  $$(summarySelector, root).forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const expanded = btn.getAttribute("aria-expanded") === "true";
-      btn.setAttribute("aria-expanded", String(!expanded));
-      const body = document.getElementById(btn.getAttribute("aria-controls"));
-      if (body) body.hidden = expanded;
+// Expandable table rows: clicking (or Enter/Space) a row toggles its detail row.
+function wireRows(root) {
+  $$(".feed-row", root).forEach((row) => {
+    const toggle = () => {
+      const expanded = row.getAttribute("aria-expanded") === "true";
+      row.setAttribute("aria-expanded", String(!expanded));
+      const detail = document.getElementById(row.getAttribute("aria-controls"));
+      if (detail) detail.hidden = expanded;
+    };
+    row.addEventListener("click", toggle);
+    row.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        toggle();
+      }
     });
   });
 }
