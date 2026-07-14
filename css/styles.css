@@ -315,13 +315,6 @@ main {
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
 }
-.news-item__subtype {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
 .news-item__headline {
   display: block;
   font-size: 1.06rem;

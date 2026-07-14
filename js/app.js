@@ -23,7 +23,7 @@ const NEWS_CSV = "data/news.csv";
 const NEWS_TABS = [
   { value: "opportunity", label: "Opportunities" },
   { value: "event", label: "Upcoming Events" },
-  { value: "research", label: "New policy research" },
+  { value: "research", label: "New education policy research" },
   { value: "headline", label: "Education headlines" },
 ];
 
@@ -246,9 +246,10 @@ function render() {
       const source = (it.source || "").trim();
       const subtype = (it.subtype || "").trim();
       const bodyId = `news-body-${i}`;
-      const subtypeHTML = subtype
-        ? `<span class="news-item__subtype">${esc(subtype)}</span>`
-        : "";
+      // The active tab already tells you the category, so the pill shows the
+      // sub-category (Funding & Grants, Webinar, Working Papers, Federal…).
+      // It keeps the category's colour. Falls back to the type if no subtype.
+      const pillText = subtype || type;
       const sourceHTML = source
         ? `<span class="news-item__source">Source: ${esc(source)}</span>`
         : "";
@@ -265,8 +266,7 @@ function render() {
           >
             <span class="news-item__heading">
               <span class="news-item__top">
-                <span class="tag tag--${esc(type)}">${esc(type)}</span>
-                ${subtypeHTML}
+                <span class="tag tag--${esc(type)}">${esc(pillText)}</span>
                 <time class="news-item__date" datetime="${esc(it.date)}">${formatDate(
         it.date
       )}</time>
