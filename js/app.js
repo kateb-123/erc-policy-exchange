@@ -265,10 +265,10 @@ function render() {
         : "";
       return `
         <tr class="feed-row" role="button" tabindex="0" aria-expanded="false" aria-controls="${detailId}">
-          <td class="feed-cell-cat"><span class="tag ${pillClass}">${esc(pillText)}</span></td>
-          <td class="feed-cell-date">${formatDate(it.date)}</td>
           <td class="feed-cell-title">${esc(it.headline)}</td>
+          <td class="feed-cell-cat"><span class="tag ${pillClass}">${esc(pillText)}</span></td>
           <td class="feed-cell-source">${esc(source)}</td>
+          <td class="feed-cell-date">${formatDate(it.date)}</td>
           <td class="feed-cell-caret">${chevronIcon()}</td>
         </tr>
         <tr class="feed-detail" id="${detailId}" hidden>
@@ -285,10 +285,10 @@ function render() {
       <table class="feed-table">
         <thead>
           <tr>
-            <th scope="col">Category</th>
-            <th scope="col">Date</th>
             <th scope="col">Title</th>
+            <th scope="col">Category</th>
             <th scope="col">Source</th>
+            <th scope="col">Date</th>
             <th scope="col"></th>
           </tr>
         </thead>
