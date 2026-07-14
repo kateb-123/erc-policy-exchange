@@ -27,6 +27,12 @@ const NEWS_TABS = [
   { value: "headline", label: "Education headlines" },
 ];
 
+// Today (YYYY-MM-DD). Upcoming Events drop off automatically once their date
+// passes, so the feed stays current with no manual pruning.
+const TODAY = new Date().toISOString().slice(0, 10);
+const isPastEvent = (it) =>
+  (it.type || "").toLowerCase() === "event" && (it.date || "") < TODAY;
+
 // Single source of truth for what's shown.
 const state = {
   items: [],
@@ -95,6 +101,14 @@ function writeURL() {
 function init(rows) {
   state.items = rows;
 
+  // Freshness cue: the most recent item date that isn't in the future (so an
+  // upcoming event's date doesn't read as a future "last updated").
+  const latest = state.items
+    .map((it) => it.date)
+    .filter((d) => d && d <= TODAY)
+    .reduce((m, d) => (d > m ? d : m), "");
+  $("#news-updated").textContent = latest ? `Updated ${formatDate(latest)}` : "";
+
   buildTabs();
   rebuildSubtypes();
 
@@ -136,6 +150,7 @@ function buildTabs() {
   const el = $("#news-tabs");
   const counts = {};
   state.items.forEach((it) => {
+    if (isPastEvent(it)) return; // past events aren't counted
     const t = (it.type || "").toLowerCase();
     counts[t] = (counts[t] || 0) + 1;
   });
@@ -195,7 +210,7 @@ function fillSelect(el, allLabel, values, current) {
 // Sub-category options = the newsletter groups within the active category.
 function rebuildSubtypes() {
   const items = state.items.filter(
-    (it) => (it.type || "").toLowerCase() === state.type
+    (it) => (it.type || "").toLowerCase() === state.type && !isPastEvent(it)
   );
   const subs = distinct("subtype", items);
   const sel = $("#news-subtype");
@@ -211,15 +226,19 @@ function filter() {
   const { type, subtype, q } = state;
   const out = state.items.filter((it) => {
     const typeOk = (it.type || "").toLowerCase() === type;
+    if (!typeOk || isPastEvent(it)) return false; // past events drop off
     const subOk = subtype === "all" || (it.subtype || "").trim() === subtype;
     const qOk =
       !q.trim() ||
       matches(it.headline || "", q) ||
       matches(it.blurb || "", q) ||
       matches(it.source || "", q);
-    return typeOk && subOk && qOk;
+    return subOk && qOk;
   });
-  out.sort((a, b) => (a.date < b.date ? 1 : -1)); // newest first
+  // Upcoming Events sort soonest-first; every other stream is newest-first.
+  out.sort((a, b) =>
+    type === "event" ? (a.date < b.date ? -1 : 1) : a.date < b.date ? 1 : -1
+  );
   return out;
 }
 

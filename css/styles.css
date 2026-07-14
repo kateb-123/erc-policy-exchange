@@ -219,6 +219,11 @@ main {
 .results__count strong {
   color: var(--ink);
 }
+.results__updated {
+  font-size: 0.8rem;
+  color: var(--faint);
+  margin: 0;
+}
 
 /* ---------- Category tabs ---------- */
 .news-tabs {
@@ -285,16 +290,16 @@ main {
   table-layout: fixed;
 }
 .col-cat {
-  width: 210px;
+  width: 200px;
 }
 .col-source {
-  width: 210px;
+  width: 180px;
 }
 .col-date {
-  width: 120px;
+  width: 110px;
 }
 .col-caret {
-  width: 48px;
+  width: 44px;
 }
 /* col-title takes the remaining space. */
 .feed-table thead th {
