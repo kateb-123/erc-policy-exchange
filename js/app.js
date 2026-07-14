@@ -39,6 +39,7 @@ const state = {
   type: NEWS_TABS[0].value, // active category tab (defaults to the first)
   subtype: "all", // sub-category dropdown (scoped to the active tab)
   q: "",
+  sort: null, // {key,dir} once a column header is clicked; null = per-tab default
 };
 
 /* ------------------------------------------------------------
@@ -180,6 +181,7 @@ function buildTabs() {
 function setType(type) {
   state.type = type;
   state.subtype = "all";
+  state.sort = null; // each tab starts at its sensible default sort
   $$("#news-tabs .news-tab").forEach((b) =>
     b.setAttribute("aria-selected", String(b.dataset.type === type))
   );
@@ -235,11 +237,60 @@ function filter() {
       matches(it.source || "", q);
     return subOk && qOk;
   });
-  // Upcoming Events sort soonest-first; every other stream is newest-first.
-  out.sort((a, b) =>
-    type === "event" ? (a.date < b.date ? -1 : 1) : a.date < b.date ? 1 : -1
-  );
+  out.sort(sortComparator());
   return out;
+}
+
+// The sort in effect: the user's chosen column, or the per-tab default (by
+// date — soonest-first for Upcoming Events, newest-first for everything else).
+function activeSort() {
+  return (
+    state.sort || { key: "date", dir: state.type === "event" ? "asc" : "desc" }
+  );
+}
+
+function sortComparator() {
+  const { key, dir } = activeSort();
+  const mult = dir === "asc" ? 1 : -1;
+  const valueOf = (it) => {
+    if (key === "title") return (it.headline || "").toLowerCase();
+    if (key === "category") return (it.subtype || "").toLowerCase();
+    if (key === "source") return (it.source || "").toLowerCase();
+    return it.date || ""; // date
+  };
+  return (a, b) => {
+    const va = valueOf(a);
+    const vb = valueOf(b);
+    if (va < vb) return -1 * mult;
+    if (va > vb) return 1 * mult;
+    return 0;
+  };
+}
+
+// Click a column header to sort by it; click the same one again to flip.
+function setSort(key) {
+  const cur = state.sort;
+  const dir =
+    cur && cur.key === key
+      ? cur.dir === "asc"
+        ? "desc"
+        : "asc"
+      : key === "date"
+      ? "desc"
+      : "asc";
+  state.sort = { key, dir };
+  render();
+}
+
+// A sortable <th>: a button that sorts by `key`, with aria-sort + an arrow.
+function sortHeader(key, label) {
+  const s = activeSort();
+  const active = s.key === key;
+  const ariaSort = active ? (s.dir === "asc" ? "ascending" : "descending") : "none";
+  const arrow = active ? (s.dir === "asc" ? " ▲" : " ▼") : "";
+  return `<th scope="col" aria-sort="${ariaSort}">
+            <button type="button" class="feed-sort${active ? " is-active" : ""}" data-key="${key}">${esc(label)}<span class="feed-sort__arrow" aria-hidden="true">${arrow}</span></button>
+          </th>`;
 }
 
 function render() {
@@ -282,13 +333,20 @@ function render() {
       const linkHTML = link
         ? `<a class="feed-link" href="${esc(link)}" target="_blank" rel="noopener noreferrer">Read the source ↗</a>`
         : "";
+      // Title links straight to the source (the primary action); the row / caret
+      // still expands the summary.
+      const titleHTML = link
+        ? `<a class="feed-title-link" href="${esc(link)}" target="_blank" rel="noopener noreferrer">${esc(it.headline)}</a>`
+        : esc(it.headline);
       return `
-        <tr class="feed-row" role="button" tabindex="0" aria-expanded="false" aria-controls="${detailId}">
-          <td class="feed-cell-title">${esc(it.headline)}</td>
+        <tr class="feed-row">
+          <td class="feed-cell-title">${titleHTML}</td>
           <td class="feed-cell-cat"><span class="tag ${pillClass}">${esc(pillText)}</span></td>
           <td class="feed-cell-source">${esc(source)}</td>
           <td class="feed-cell-date">${formatDate(it.date)}</td>
-          <td class="feed-cell-caret">${chevronIcon()}</td>
+          <td class="feed-cell-caret">
+            <button type="button" class="feed-expand" aria-expanded="false" aria-controls="${detailId}" aria-label="Show summary">${chevronIcon()}</button>
+          </td>
         </tr>
         <tr class="feed-detail" id="${detailId}" hidden>
           <td colspan="5">
@@ -311,11 +369,11 @@ function render() {
         </colgroup>
         <thead>
           <tr>
-            <th scope="col">Title</th>
-            <th scope="col">Category</th>
-            <th scope="col">Source</th>
-            <th scope="col">Date</th>
-            <th scope="col"></th>
+            ${sortHeader("title", "Title")}
+            ${sortHeader("category", "Category")}
+            ${sortHeader("source", "Source")}
+            ${sortHeader("date", "Date")}
+            <th scope="col"><span class="sr-only">Summary</span></th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
@@ -325,22 +383,31 @@ function render() {
   wireRows(list);
 }
 
-// Expandable table rows: clicking (or Enter/Space) a row toggles its detail row.
+// Toggle one row's detail via its caret button (the accessible expand control).
+function toggleDetail(caretBtn) {
+  const expanded = caretBtn.getAttribute("aria-expanded") === "true";
+  caretBtn.setAttribute("aria-expanded", String(!expanded));
+  const detail = document.getElementById(caretBtn.getAttribute("aria-controls"));
+  if (detail) detail.hidden = expanded;
+}
+
 function wireRows(root) {
+  // The caret button is the accessible expand control (keyboard-operable).
+  $$(".feed-expand", root).forEach((btn) => {
+    btn.addEventListener("click", () => toggleDetail(btn));
+  });
+  // Clicking elsewhere on the row also expands (a bigger target); clicks on the
+  // title link or the caret do their own thing.
   $$(".feed-row", root).forEach((row) => {
-    const toggle = () => {
-      const expanded = row.getAttribute("aria-expanded") === "true";
-      row.setAttribute("aria-expanded", String(!expanded));
-      const detail = document.getElementById(row.getAttribute("aria-controls"));
-      if (detail) detail.hidden = expanded;
-    };
-    row.addEventListener("click", toggle);
-    row.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        toggle();
-      }
+    row.addEventListener("click", (e) => {
+      if (e.target.closest("a") || e.target.closest(".feed-expand")) return;
+      const caret = row.querySelector(".feed-expand");
+      if (caret) toggleDetail(caret);
     });
+  });
+  // Sortable column headers.
+  $$(".feed-sort", root).forEach((btn) => {
+    btn.addEventListener("click", () => setSort(btn.dataset.key));
   });
 }
 
