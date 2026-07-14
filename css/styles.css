@@ -274,10 +274,29 @@ main {
 }
 .feed-table {
   width: 100%;
+  /* Keeps Title readable; narrower viewports scroll (.feed-scroll) rather
+     than collapsing the Title column. */
+  min-width: 760px;
   border-collapse: collapse;
   background: var(--card);
   font-size: 0.92rem;
+  /* Fixed layout so column widths stay constant across every row and tab,
+     instead of resizing to fit each view's content. */
+  table-layout: fixed;
 }
+.col-cat {
+  width: 210px;
+}
+.col-source {
+  width: 210px;
+}
+.col-date {
+  width: 120px;
+}
+.col-caret {
+  width: 48px;
+}
+/* col-title takes the remaining space. */
 .feed-table thead th {
   background: var(--maroon);
   color: #fff;
@@ -296,6 +315,7 @@ main {
   padding: 12px 16px;
   border-top: 1px solid var(--line-soft);
   vertical-align: middle;
+  overflow-wrap: break-word;
 }
 .feed-row:hover > td,
 .feed-row[aria-expanded="true"] > td {

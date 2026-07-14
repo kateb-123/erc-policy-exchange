@@ -283,6 +283,13 @@ function render() {
   list.innerHTML = `
     <div class="feed-scroll">
       <table class="feed-table">
+        <colgroup>
+          <col class="col-title" />
+          <col class="col-cat" />
+          <col class="col-source" />
+          <col class="col-date" />
+          <col class="col-caret" />
+        </colgroup>
         <thead>
           <tr>
             <th scope="col">Title</th>
