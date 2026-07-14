@@ -23,11 +23,8 @@
     <div class="site-header__inner">
       <p class="site-header__eyebrow">Education Research Center</p>
       <h1 class="site-header__title">Policy Exchange</h1>
-      <p class="site-header__tagline">
-        Research, News, &amp; Opportunities — a filterable feed of education
-        opportunities, new policy research, headlines, and upcoming events.
-        Driven by a single spreadsheet.
-      </p>
+      <p class="site-header__subtitle">Research, News, &amp; Opportunities</p>
+      <div class="news-tabs" id="news-tabs" role="tablist" aria-label="Categories"></div>
     </div>
   </header>
 
@@ -55,14 +52,13 @@
         <button class="rail__reset" id="news-reset" type="button">Clear filters</button>
       </aside>
 
-      <!-- Results: category tabs + feed -->
+      <!-- Results: the feed, with the count summary underneath -->
       <div class="results">
-        <div class="news-tabs" id="news-tabs" role="tablist" aria-label="Categories"></div>
+        <div class="news-list" id="news-list"></div>
         <div class="results__meta">
           <p class="results__count" id="news-count" aria-live="polite" role="status"></p>
           <p class="results__updated" id="news-updated"></p>
         </div>
-        <div class="news-list" id="news-list"></div>
       </div>
     </div>
   </main>

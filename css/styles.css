@@ -83,7 +83,7 @@ a:hover {
 .site-header {
   background: var(--maroon);
   color: #fff;
-  padding: 30px 24px 34px;
+  padding: 22px 24px 0;
   border-bottom: 6px solid var(--maroon-soft);
 }
 .site-header__inner {
@@ -99,16 +99,15 @@ a:hover {
   margin: 0 0 8px;
 }
 .site-header__title {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 800;
-  margin: 0 0 8px;
+  margin: 0 0 4px;
   letter-spacing: -0.01em;
 }
-.site-header__tagline {
+.site-header__subtitle {
   margin: 0;
-  color: rgba(255, 255, 255, 0.86);
-  font-size: 1rem;
-  max-width: 66ch;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
 }
 
 /* ---------- Layout ---------- */
@@ -209,7 +208,7 @@ main {
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  margin: 2px 0 16px;
+  margin: 14px 0 0; /* sits below the table */
   flex-wrap: wrap;
 }
 .results__count {
@@ -225,48 +224,46 @@ main {
   margin: 0;
 }
 
-/* ---------- Category tabs ---------- */
+/* ---------- Category tabs (inside the maroon header) ---------- */
 .news-tabs {
   display: flex;
   flex-wrap: wrap;
   gap: 2px;
-  margin-bottom: 18px;
-  border-bottom: 2px solid var(--line-soft);
+  margin-top: 14px;
 }
 .news-tab {
   appearance: none;
   border: 0;
   background: transparent;
   font-family: var(--head);
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  color: var(--muted);
+  color: rgba(255, 255, 255, 0.72);
   padding: 10px 14px;
   cursor: pointer;
   border-bottom: 3px solid transparent;
-  margin-bottom: -2px;
   display: inline-flex;
   align-items: center;
   gap: 7px;
 }
 .news-tab:hover {
-  color: var(--maroon);
+  color: #fff;
 }
 .news-tab[aria-selected="true"] {
-  color: var(--maroon);
-  border-bottom-color: var(--maroon);
+  color: #fff;
+  border-bottom-color: #fff;
 }
 .news-tab__count {
   font-size: 0.72rem;
   font-weight: 700;
-  color: var(--faint);
-  background: var(--panel);
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.16);
   border-radius: 999px;
   padding: 1px 7px;
   font-variant-numeric: tabular-nums;
 }
 .news-tab[aria-selected="true"] .news-tab__count {
-  background: var(--maroon-tint);
+  background: #fff;
   color: var(--maroon);
 }
 
