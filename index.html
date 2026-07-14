@@ -75,8 +75,15 @@
             />
           </div>
           <select class="rail-select" id="news-subtype" aria-label="Sub-category"></select>
+          <select class="rail-select" id="news-sort" aria-label="Sort opportunities" hidden>
+            <option value="newest">Sort: Newest</option>
+            <option value="closing">Sort: Closing soon</option>
+          </select>
           <button class="rail__reset" id="news-reset" type="button">Clear filters</button>
         </div>
+        <!-- Opportunities: button toolbar (sort + category), replaces the
+             search/dropdown filter bar for that tab. Populated by app.js. -->
+        <div class="opp-toolbar" id="opp-toolbar" hidden></div>
         <div class="news-list" id="news-list"></div>
         <div class="results__meta">
           <p class="results__count" id="news-count" aria-live="polite" role="status"></p>

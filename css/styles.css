@@ -369,6 +369,90 @@ main {
   width: auto;
   white-space: nowrap;
 }
+.filter-bar[hidden] {
+  display: none;
+}
+
+/* ---------- Card-tab button toolbar (category views + sort) ----------
+   Sticky: the filters stay pinned while the list scrolls, and the table
+   header (.feed__head) docks directly beneath them (offset measured into
+   --toolbar-h by app.js, since the toolbar can wrap to two rows). */
+.opp-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--bg);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 26px;
+  margin: 0;
+  padding: 10px 0 14px;
+}
+.opp-toolbar[hidden] {
+  display: none;
+}
+.tgroup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.tgroup__label {
+  font-family: var(--head);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--faint);
+  margin-right: 2px;
+}
+.tbtn {
+  appearance: none;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 7px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tbtn:hover {
+  border-color: var(--maroon);
+  color: var(--maroon);
+}
+.tbtn.is-active {
+  background: var(--maroon);
+  border-color: var(--maroon);
+  color: #fff;
+}
+/* Sort options: plain text actions (no box), active one emphasised. */
+.tsort {
+  appearance: none;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+  padding: 4px 2px;
+  cursor: pointer;
+}
+.tsort:hover {
+  color: var(--maroon);
+  text-decoration: underline;
+}
+.tsort.is-active {
+  color: var(--maroon);
+  font-weight: 700;
+}
+.tsort-sep {
+  color: var(--faint);
+  margin: 0 5px;
+}
 
 /* ---------- Feed table (expandable rows) ---------- */
 .feed-scroll {
@@ -450,11 +534,20 @@ main {
   padding: 4px 16px 18px;
   background: var(--panel);
 }
+/* "Abstract" label above an expanded research summary. */
+.feed-detail__label {
+  margin: 0 0 6px;
+  font-family: var(--head);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
 .feed-detail__blurb {
   margin: 0 0 14px;
   font-size: 0.92rem;
   color: var(--body);
-  max-width: 80ch;
 }
 .feed-link {
   display: inline-flex;
@@ -529,6 +622,175 @@ main {
   transform: rotate(180deg);
 }
 
+/* ---------- Feed (framed two-row table — Opportunities) ----------
+   Each item is a 2×2 grid: title / deadline on the top row, source / pill on
+   the bottom row. Left column flexes; right column is fixed so the deadline and
+   pill line up into a column down the page. */
+.feed--opp {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  /* No overflow:hidden here — it would disable the sticky header. Corners are
+     rounded on the header and last row instead. */
+}
+.feed__head {
+  position: sticky;
+  top: var(--toolbar-h, 0px); /* docks beneath the sticky filter toolbar */
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  background: var(--maroon);
+  color: #fff;
+  font-family: var(--head);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding: 11px 18px;
+  border-radius: 8px 8px 0 0;
+}
+/* Round the last row so the (now un-clipped) container keeps its soft corners. */
+.feed-item:last-child,
+.feed-item:last-child .feed-item__detail {
+  border-radius: 0 0 8px 8px;
+}
+.feed__head-r {
+  text-align: right;
+}
+.feed__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.feed-item + .feed-item {
+  border-top: 1px solid var(--line-soft);
+}
+.feed-item__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 14px 18px;
+  cursor: pointer;
+}
+.feed-item:hover,
+.feed-item[data-expanded="true"] {
+  background: var(--panel);
+}
+/* Left column: title over a quiet metadata line (category · source). */
+.feed-item__body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.feed-item__title {
+  margin-bottom: 5px;
+}
+.feed-item__meta {
+  font-size: 0.86rem;
+}
+/* Category = coloured text (no box); hue from .feed-cat--cN below. */
+.feed-cat {
+  font-family: var(--head);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.feed-meta-sep {
+  color: var(--faint);
+  margin: 0 8px;
+}
+/* Research line 2: the authors — the scan-key, so darker than the meta line. */
+.feed-item__authors {
+  color: var(--body);
+  font-size: 0.88rem;
+  margin-bottom: 4px;
+}
+/* Long author lists un-truncate in place: collapsed shows "…et al.", expanded
+   swaps in the full list on the same line — no jumping. */
+.feed-item__authors .authors-full {
+  display: none;
+}
+.feed-item[data-expanded="true"] .authors-short {
+  display: none;
+}
+.feed-item[data-expanded="true"] .authors-full {
+  display: inline;
+}
+/* Research line 3: posted date, quiet at the end of the meta line. */
+.feed-meta-date {
+  color: var(--faint);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+/* Right column: deadline beside the caret, top-aligned with the title. */
+.feed-cell--due {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  padding-top: 2px;
+}
+/* Title links straight to the source (primary action). */
+.feed-item .feed-title-link {
+  font-family: var(--head);
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.35;
+  color: var(--maroon-700);
+  text-decoration: none;
+}
+.feed-item .feed-title-link:hover {
+  text-decoration: underline;
+}
+.feed-source {
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+/* Medium icon (newspaper/radio/tv/…) riding just before the source name. */
+.feed-medium {
+  display: inline-flex;
+  vertical-align: -3px;
+  margin-right: 5px;
+}
+.feed-medium svg {
+  width: 15px;
+  height: 15px;
+}
+.feed-deadline {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+/* Firm deadline closing within two weeks — nudge it in maroon. */
+.feed-deadline--soon {
+  color: var(--maroon);
+}
+.feed-item__detail[hidden] {
+  display: none;
+}
+.feed-item__detail {
+  padding: 0 18px 16px 18px;
+}
+/* Link-only rows (Headlines): the row itself opens the source, so the right
+   edge shows a small ↗ instead of an expand caret. */
+.feed-goto {
+  color: var(--maroon);
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1;
+}
+/* Narrow screens: hide the column header; the flex row already stacks well. */
+@media (max-width: 640px) {
+  .feed__head {
+    display: none;
+  }
+}
+
 /* ---------- Type tags ---------- */
 .tag {
   display: inline-block;
@@ -573,6 +835,15 @@ main {
   color: #8a2f42;
   border-color: #f3d6dc;
 }
+
+/* Category text colours (Opportunities metadata line) — same hues as the pills,
+   text only. NOTE: palette flagged for a revisit with Kate. */
+.feed-cat--c0 { color: #245c39; }
+.feed-cat--c1 { color: #4a3072; }
+.feed-cat--c2 { color: #2c4a72; }
+.feed-cat--c3 { color: #8a5a1a; }
+.feed-cat--c4 { color: #1f5b57; }
+.feed-cat--c5 { color: #8a2f42; }
 
 /* ---------- Empty / error state ---------- */
 .state {
