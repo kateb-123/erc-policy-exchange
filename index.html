@@ -22,8 +22,11 @@
   <header class="site-header">
     <div class="site-header__inner">
       <div class="site-header__intro">
-        <h1 class="site-header__title">Policy Exchange</h1>
-        <p class="site-header__subtitle">Research, News, &amp; Opportunities</p>
+        <h1 class="site-header__title">ERC Policy Exchange</h1>
+        <p class="site-header__subtitle">
+          Engage with the latest research, upcoming events, and professional
+          opportunities shaping the field of education policy.
+        </p>
       </div>
       <div class="site-header__brand">
         <img
@@ -49,39 +52,31 @@
         </div>
       </div>
     </div>
-    <nav class="header-nav" aria-label="Categories">
-      <div class="header-nav__inner">
-        <div class="news-tabs" id="news-tabs" role="tablist" aria-label="Categories"></div>
-      </div>
-    </nav>
   </header>
 
   <main id="main">
     <div class="layout">
-      <!-- Left rail: refine within the active category -->
-      <aside class="rail" aria-label="Refine the feed">
-        <div class="rail__group">
-          <h2 class="rail__label" id="search-label">Search</h2>
+      <!-- Left sidebar: category navigation -->
+      <aside class="sidenav" aria-label="Categories">
+        <nav class="news-tabs" id="news-tabs" role="tablist" aria-label="Categories"></nav>
+      </aside>
+
+      <!-- Results: filter toolbar, feed, then the count summary -->
+      <div class="results">
+        <div class="filter-bar" role="search">
           <div class="search-wrap">
             <input
               type="search"
               class="search-input"
               id="news-search"
               placeholder="Search headlines &amp; blurbs…"
-              aria-labelledby="search-label"
+              aria-label="Search headlines and blurbs"
               autocomplete="off"
             />
           </div>
+          <select class="rail-select" id="news-subtype" aria-label="Sub-category"></select>
+          <button class="rail__reset" id="news-reset" type="button">Clear filters</button>
         </div>
-        <div class="rail__group">
-          <label class="rail__label" for="news-subtype">Sub-category</label>
-          <select class="rail-select" id="news-subtype"></select>
-        </div>
-        <button class="rail__reset" id="news-reset" type="button">Clear filters</button>
-      </aside>
-
-      <!-- Results: the feed, with the count summary underneath -->
-      <div class="results">
         <div class="news-list" id="news-list"></div>
         <div class="results__meta">
           <p class="results__count" id="news-count" aria-live="polite" role="status"></p>

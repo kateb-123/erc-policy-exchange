@@ -21,10 +21,26 @@ const NEWS_CSV = "data/news.csv";
 // categories are distinct enough that a mixed "All" view isn't useful).
 // These mirror the ERC newsletter's timely sections.
 const NEWS_TABS = [
-  { value: "opportunity", label: "Opportunities" },
-  { value: "event", label: "Upcoming Events" },
-  { value: "research", label: "New education policy research" },
-  { value: "headline", label: "Education headlines" },
+  {
+    value: "opportunity",
+    label: "Opportunities",
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0 1 18 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3 1.5 1.5 3-3.75"/></svg>',
+  },
+  {
+    value: "event",
+    label: "Upcoming Events",
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>',
+  },
+  {
+    value: "research",
+    label: "New Education Policy Research",
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25M9 16.5v.75m3-3v3M15 12v5.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>',
+  },
+  {
+    value: "headline",
+    label: "Education Headlines",
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 0 1-2.25 2.25M16.5 7.5V18a2.25 2.25 0 0 0 2.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 0 0 2.25 2.25h13.5M6 7.5h3v3H6v-3Z"/></svg>',
+  },
 ];
 
 // Today (YYYY-MM-DD). Upcoming Events drop off automatically once their date
@@ -149,15 +165,8 @@ function bindSelect(sel, key) {
  * ------------------------------------------------------------ */
 function buildTabs() {
   const el = $("#news-tabs");
-  const counts = {};
-  state.items.forEach((it) => {
-    if (isPastEvent(it)) return; // past events aren't counted
-    const t = (it.type || "").toLowerCase();
-    counts[t] = (counts[t] || 0) + 1;
-  });
 
   el.innerHTML = NEWS_TABS.map((t) => {
-    const count = counts[t.value] || 0;
     return `
       <button
         type="button"
@@ -166,8 +175,8 @@ function buildTabs() {
         data-type="${t.value}"
         aria-selected="${state.type === t.value}"
       >
+        <span class="news-tab__icon" aria-hidden="true">${t.icon}</span>
         <span>${esc(t.label)}</span>
-        <span class="news-tab__count">${count}</span>
       </button>`;
   }).join("");
 

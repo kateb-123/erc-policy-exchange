@@ -19,7 +19,8 @@
 
   --line: #d9d4d0;
   --line-soft: #e7e1dc;
-  --bg: #f4f0ec;
+  --bg: #ffffff;
+  --warm: #f4f0ec;
   --panel: #faf7f3;
   --card: #ffffff;
 
@@ -31,7 +32,7 @@
   --sans: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Helvetica, Arial, sans-serif;
 
-  --maxw: 1180px;
+  --maxw: 1320px;
 }
 
 /* ---------- Base ---------- */
@@ -100,33 +101,41 @@ a:hover {
   margin: 0 auto;
   padding: 22px 24px 18px;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 24px;
   flex-wrap: wrap;
 }
 
-/* Right-side brand block: horizontal logo above the contact line. */
+/* Keep the title + subtitle in a left column so the long subtitle wraps
+   instead of spanning full width and pushing the brand block below it. */
+.site-header__intro {
+  flex: 1 1 340px;
+  max-width: 640px;
+}
+
+/* Right-side brand block: logo beside the vertically stacked contact links. */
 .site-header__brand {
+  flex: 0 0 auto;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 12px;
-  text-align: center;
+  gap: 20px;
+  text-align: left;
 }
 .site-header__logo {
-  height: 48px;
+  height: 41px;
   width: auto;
   display: block;
 }
 .site-header__contact {
   display: flex;
-  align-items: center;
-  gap: 14px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
 }
 .site-header__contact-sep {
-  color: rgba(255, 255, 255, 0.4);
-  user-select: none;
+  display: none;
 }
 .site-header__contact-link {
   display: inline-flex;
@@ -164,7 +173,7 @@ a:hover {
   margin: 0 0 8px;
 }
 .site-header__title {
-  font-size: 1.5rem;
+  font-size: 28px;
   font-weight: 800;
   margin: 0 0 4px;
   letter-spacing: -0.01em;
@@ -172,7 +181,7 @@ a:hover {
 .site-header__subtitle {
   margin: 0;
   color: rgba(255, 255, 255, 0.8);
-  font-size: 0.95rem;
+  font-size: 17px;
 }
 
 /* ---------- Layout ---------- */
@@ -183,7 +192,7 @@ main {
 }
 .layout {
   display: grid;
-  grid-template-columns: 260px 1fr;
+  grid-template-columns: 320px 1fr;
   gap: 32px;
   align-items: start;
 }
@@ -289,46 +298,76 @@ main {
   margin: 0;
 }
 
-/* ---------- Category tabs (inside the maroon header) ---------- */
+/* ---------- Category nav (vertical sidebar) ---------- */
+.sidenav {
+  position: sticky;
+  top: 20px;
+  background: var(--warm);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  padding: 10px 8px;
+}
 .news-tabs {
   display: flex;
-  flex-wrap: wrap;
-  gap: 2px;
+  flex-direction: column;
+  gap: 7px;
 }
 .news-tab {
   appearance: none;
   border: 0;
+  border-left: 3px solid transparent;
   background: transparent;
   font-family: var(--head);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.78);
-  padding: 12px 15px;
+  color: var(--muted);
+  text-align: left;
+  width: 100%;
+  padding: 11px 14px;
   cursor: pointer;
-  border-bottom: 3px solid transparent;
+  border-radius: 0 8px 8px 0;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 11px;
 }
 .news-tab:hover {
-  color: #fff;
+  color: var(--maroon);
+  background: rgba(80, 0, 0, 0.05);
 }
 .news-tab[aria-selected="true"] {
-  color: #fff;
-  border-bottom-color: #fff;
-}
-.news-tab__count {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.8);
-  background: rgba(255, 255, 255, 0.18);
-  border-radius: 999px;
-  padding: 1px 7px;
-  font-variant-numeric: tabular-nums;
-}
-.news-tab[aria-selected="true"] .news-tab__count {
-  background: #fff;
   color: var(--maroon);
+  border-left-color: var(--maroon);
+  background: var(--maroon-tint);
+}
+.news-tab__icon {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.news-tab__icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ---------- Filter toolbar (horizontal, above the table) ---------- */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 16px;
+  flex-wrap: wrap;
+}
+.filter-bar .search-wrap {
+  flex: 1 1 280px;
+}
+.filter-bar .rail-select {
+  width: auto;
+  min-width: 220px;
+}
+.filter-bar .rail__reset {
+  margin-top: 0;
+  width: auto;
+  white-space: nowrap;
 }
 
 /* ---------- Feed table (expandable rows) ---------- */
@@ -580,8 +619,23 @@ main {
     grid-template-columns: 1fr;
     gap: 20px;
   }
-  .rail {
+  .sidenav {
     position: static;
+  }
+  /* Category nav goes horizontal (wrapping) above the results on phones. */
+  .news-tabs {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .news-tab {
+    width: auto;
+    border-left: 0;
+    border-bottom: 3px solid transparent;
+    border-radius: 8px;
+  }
+  .news-tab[aria-selected="true"] {
+    border-left-color: transparent;
+    border-bottom-color: var(--maroon);
   }
 
   /* Table → stacked cards, so phones read top-to-bottom (no side-scroll). */
