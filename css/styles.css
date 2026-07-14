@@ -99,6 +99,51 @@ a:hover {
   max-width: var(--maxw);
   margin: 0 auto;
   padding: 22px 24px 18px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+/* Right-side brand block: horizontal logo above the contact line. */
+.site-header__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+.site-header__logo {
+  height: 48px;
+  width: auto;
+  display: block;
+}
+.site-header__contact {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.site-header__contact-sep {
+  color: rgba(255, 255, 255, 0.4);
+  user-select: none;
+}
+.site-header__contact-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+.site-header__contact-link:hover {
+  color: #fff;
+  text-decoration: none;
+}
+.site-header__contact-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 /* The category tabs live in their own lighter-maroon bar so the menu stands
    apart from the header. */

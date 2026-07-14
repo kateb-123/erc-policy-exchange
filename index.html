@@ -21,9 +21,33 @@
 
   <header class="site-header">
     <div class="site-header__inner">
-      <p class="site-header__eyebrow">Education Research Center</p>
-      <h1 class="site-header__title">Policy Exchange</h1>
-      <p class="site-header__subtitle">Research, News, &amp; Opportunities</p>
+      <div class="site-header__intro">
+        <h1 class="site-header__title">Policy Exchange</h1>
+        <p class="site-header__subtitle">Research, News, &amp; Opportunities</p>
+      </div>
+      <div class="site-header__brand">
+        <img
+          class="site-header__logo"
+          src="assets/ERC_Horizontal_WhiteText_narrow.png"
+          alt="Education Research Center, Texas A&amp;M University"
+        />
+        <div class="site-header__contact">
+          <a class="site-header__contact-link" href="https://erc.cehd.tamu.edu/" target="_blank" rel="noopener">
+            <svg class="site-header__contact-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+              <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.5 5.5-2.4 6.6-6.6 2.4 2.4-6.6 6.6-2.4zM12 10.7a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6z" />
+            </svg>
+            <span>erc.cehd.tamu.edu</span>
+          </a>
+          <span class="site-header__contact-sep" aria-hidden="true">|</span>
+          <a class="site-header__contact-link" href="mailto:erc@tamu.edu">
+            <svg class="site-header__contact-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+              <path d="M2 6.5A2.5 2.5 0 0 1 4.5 4h15A2.5 2.5 0 0 1 22 6.5v.3l-10 5.7L2 6.8v-.3z" />
+              <path d="M22 8.9V17.5A2.5 2.5 0 0 1 19.5 20h-15A2.5 2.5 0 0 1 2 17.5V8.9l9.5 5.4a1 1 0 0 0 1 0L22 8.9z" />
+            </svg>
+            <span>erc@tamu.edu</span>
+          </a>
+        </div>
+      </div>
     </div>
     <nav class="header-nav" aria-label="Categories">
       <div class="header-nav__inner">
@@ -66,13 +90,6 @@
       </div>
     </div>
   </main>
-
-  <footer class="site-footer">
-    <p>
-      Education Research Center, Texas A&amp;M University. Content is CSV-driven —
-      edit <code>data/news.csv</code> to update this feed.
-    </p>
-  </footer>
 
   <script src="js/csv.js"></script>
   <script src="js/app.js"></script>
