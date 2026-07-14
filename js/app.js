@@ -230,6 +230,15 @@ function render() {
     results.length === 1 ? "update" : "updates"
   }`;
 
+  // Give each sub-category in the active tab its own pill colour (palette in
+  // styles.css). Assigned per tab so colours are always distinct within a view.
+  const tabSubs = distinct(
+    "subtype",
+    state.items.filter((it) => (it.type || "").toLowerCase() === state.type)
+  );
+  const colorFor = {};
+  tabSubs.forEach((s, i) => (colorFor[s] = `tag--c${i % 6}`));
+
   if (results.length === 0) {
     list.innerHTML = `
       <div class="state">
@@ -247,9 +256,10 @@ function render() {
       const subtype = (it.subtype || "").trim();
       const bodyId = `news-body-${i}`;
       // The active tab already tells you the category, so the pill shows the
-      // sub-category (Funding & Grants, Webinar, Working Papers, Federal…).
-      // It keeps the category's colour. Falls back to the type if no subtype.
+      // sub-category (Funding & Grants, Webinar, Working Papers, Federal…),
+      // each in its own colour. Falls back to the type if no subtype.
       const pillText = subtype || type;
+      const pillClass = colorFor[subtype] || "tag--c0";
       const sourceHTML = source
         ? `<span class="news-item__source">Source: ${esc(source)}</span>`
         : "";
@@ -266,7 +276,7 @@ function render() {
           >
             <span class="news-item__heading">
               <span class="news-item__top">
-                <span class="tag tag--${esc(type)}">${esc(pillText)}</span>
+                <span class="tag ${pillClass}">${esc(pillText)}</span>
                 <time class="news-item__date" datetime="${esc(it.date)}">${formatDate(
         it.date
       )}</time>

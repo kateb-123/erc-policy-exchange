@@ -380,25 +380,37 @@ main {
   border: 1px solid transparent;
   white-space: nowrap;
 }
-.tag--opportunity {
+/* Sub-category pill palette — each sub-category within a tab gets a distinct
+   colour (assigned in app.js). Max 4 sub-categories per tab, so 6 is plenty. */
+.tag--c0 {
   background: #eaf5ee;
   color: #245c39;
   border-color: #cfe7d7;
 }
-.tag--research {
+.tag--c1 {
   background: #f3eefa;
   color: #4a3072;
   border-color: #e2d6ee;
 }
-.tag--headline {
+.tag--c2 {
   background: #eef2f8;
   color: #2c4a72;
   border-color: #d6e0ee;
 }
-.tag--event {
+.tag--c3 {
   background: #fbf1e4;
   color: #8a5a1a;
   border-color: #f0dcc0;
+}
+.tag--c4 {
+  background: #e3f3f2;
+  color: #1f5b57;
+  border-color: #c8e6e3;
+}
+.tag--c5 {
+  background: #fdeef0;
+  color: #8a2f42;
+  border-color: #f3d6dc;
 }
 
 /* ---------- Empty / error state ---------- */
