@@ -356,6 +356,25 @@ function distinct(field, items = state.items) {
   return [...set].sort();
 }
 
+// Kate's per-tab subtype order (2026-07-15) — drives the SHOW button order AND
+// the colour cycle (1st non-maroon subtype = navy, then gold, teal, purple,
+// orange). Lowercase; both singular/plural spellings listed where labels
+// changed. Subtypes not listed here sink to the end alphabetically.
+const SUBTYPE_ORDER = {
+  event: ["erc event", "erc events", "texas a&m", "online", "online/webinar", "webinar", "off-campus"],
+  research: ["erc research brief", "working paper", "working papers", "peer-reviewed", "report", "reports"],
+  headline: ["texas", "national"],
+  opportunity: ["call for proposals", "calls for proposals", "fellowships & programs", "funding & grants"],
+};
+function sortSubtypes(subs, type) {
+  const order = SUBTYPE_ORDER[(type || "").toLowerCase()] || [];
+  const rank = (s) => {
+    const i = order.indexOf(s.trim().toLowerCase());
+    return i === -1 ? order.length : i;
+  };
+  return [...subs].sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
+}
+
 function fillSelect(el, allLabel, values, current) {
   el.innerHTML =
     `<option value="all">${esc(allLabel)}</option>` +
@@ -368,7 +387,7 @@ function rebuildSubtypes() {
   const items = state.items.filter(
     (it) => (it.type || "").toLowerCase() === state.type && !isExpired(it)
   );
-  const subs = distinct("subtype", items);
+  const subs = sortSubtypes(distinct("subtype", items), state.type);
   const sel = $("#news-subtype");
   fillSelect(sel, "All sub-categories", subs, state.subtype);
   state.subtype = sel.value; // may have reset to "all" if now invalid
@@ -612,7 +631,7 @@ function renderToolbar() {
   // Category filter buttons render on every tab — even with a single
   // sub-category — so the toolbar structure (SHOW row over SORT row) is
   // identical as you move between sections.
-  const subs = distinct("subtype", items);
+  const subs = sortSubtypes(distinct("subtype", items), state.type);
   const catBtns = ["all", ...subs]
     .map((v) => {
       const active = state.subtype === v;
@@ -891,9 +910,12 @@ function render() {
   // pill (Kate's rule); the rest cycle the 5-colour palette per tab so colours
   // stay distinct within a view.
   const MAROON_SUBS = new Set(["erc event", "erc events", "erc research brief", "texas"]);
-  const tabSubs = distinct(
-    "subtype",
-    state.items.filter((it) => (it.type || "").toLowerCase() === state.type)
+  const tabSubs = sortSubtypes(
+    distinct(
+      "subtype",
+      state.items.filter((it) => (it.type || "").toLowerCase() === state.type)
+    ),
+    state.type
   );
   const colorFor = {};
   let ci = 0;
