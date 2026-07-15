@@ -515,6 +515,35 @@ const MEDIUM_ICONS = {
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/></svg>',
 };
 
+// Small icons inside the category pills — FEED ROWS ONLY (the SHOW filter
+// pills stay text-only). Keyed by lowercase subtype → an SVG in assets/icons/
+// (Kate's own set, 2026-07-15). Rendered via CSS mask so the icon takes the
+// pill's colour; swap/edit the SVG files and the app picks them up as-is.
+// Unknown subtypes simply get no icon, so new CSV categories degrade
+// gracefully.
+const CAT_ICONS = {
+  // Opportunities
+  "calls for proposals": "megaphone.svg",
+  "fellowships & programs": "fellowships-programs.svg",
+  "funding & grants": "grants.svg",
+  // Events — subtypes per Kate 2026-07-15: ERC Events / Texas A&M / Online /
+  // Off-Campus / Webinar (Featured gets no pill). ERC Events shares the star
+  // with ERC Research Brief (both = "ours").
+  "erc events": "star.svg",
+  "texas a&m": "on-campus.svg",
+  "off-campus": "off-campus.svg",
+  online: "webinar.svg",
+  webinar: "webinar.svg",
+  // Research
+  "erc research brief": "star.svg",
+  "peer-reviewed": "peer-reviewed.svg",
+  reports: "reports.svg",
+  "working papers": "working-paper.svg",
+  // Headlines
+  national: "us.svg",
+  texas: "texas.svg",
+};
+
 // Column labels for the card table's frozen header, per tab.
 // `expand: false` = rows don't expand in place; the row is a straight link to
 // the source (Headlines: the blurb is just a teaser, the article is the point).
@@ -619,8 +648,15 @@ function renderFeedCards(results, colorFor) {
       const source = (it.source || "").trim();
       const subtype = (it.subtype || "").trim();
       const catText = subtype || (it.type || "");
-      // Category shows as coloured text (no box); reuse the tag palette's hue.
-      const catClass = (colorFor[subtype] || "tag--c0").replace("tag", "feed-cat");
+      // Category = a coloured pill above the title (the .tag palette), with a
+      // small icon when the subtype has one in CAT_ICONS.
+      const catClass = colorFor[subtype] || "tag--c0";
+      const catIcon = CAT_ICONS[catText.trim().toLowerCase()] || "";
+      const catHTML = `<div class="feed-item__cat"><span class="tag ${catClass}">${
+        catIcon
+          ? `<span class="tag__icon" style="-webkit-mask-image:url('assets/icons/${catIcon}');mask-image:url('assets/icons/${catIcon}')" aria-hidden="true"></span>`
+          : ""
+      }${esc(catText)}</span></div>`;
       const detailId = `feed-detail-${i}`;
       // Right column: Opportunities show the deadline; Events show the event date.
       const rv = isOpp
@@ -640,16 +676,17 @@ function renderFeedCards(results, colorFor) {
       const linkHTML = link
         ? `<a class="feed-link" href="${esc(link)}" target="_blank" rel="noopener noreferrer">Read the source ↗</a>`
         : "";
-      // Metadata line under the title: [icon] source · category (coloured text).
-      // The icon comes from the optional `medium` CSV column (newspaper/radio/…).
+      // Metadata line under the title: [icon] source (the category rides in the
+      // pill above the title now). Icon comes from the optional `medium` column.
       const medIcon = MEDIUM_ICONS[(it.medium || "").trim().toLowerCase()] || "";
-      const metaHTML =
-        (source
-          ? `<span class="feed-source">${
-              medIcon ? `<span class="feed-medium" aria-hidden="true">${medIcon}</span>` : ""
-            }${esc(source)}</span><span class="feed-meta-sep" aria-hidden="true">·</span>`
-          : "") +
-        `<span class="feed-cat ${catClass}">${esc(catText)}</span>`;
+      const metaHTML = source
+        ? `<span class="feed-source">${
+            medIcon ? `<span class="feed-medium" aria-hidden="true">${medIcon}</span>` : ""
+          }${esc(source)}</span>`
+        : "";
+      const metaDivHTML = metaHTML
+        ? `<div class="feed-item__meta">${metaHTML}</div>`
+        : "";
       // Research: three-line row — title / authors / source · category · date.
       // The caret is the only thing on the right; the full author list rides in
       // the expanded detail when the collapsed line is truncated.
@@ -662,18 +699,22 @@ function renderFeedCards(results, colorFor) {
             ? `<div class="feed-item__authors"><span class="authors-short">${esc(a.text)}</span><span class="authors-full">${esc(it.authors)}</span></div>`
             : `<div class="feed-item__authors">${esc(a.text)}</div>`
           : "";
-        const line3 =
-          metaHTML +
-          (it.date
-            ? `<span class="feed-meta-sep" aria-hidden="true">·</span><span class="feed-meta-date">${formatDate(it.date)}</span>`
-            : "");
+        const line3 = [
+          metaHTML,
+          it.date
+            ? `<span class="feed-meta-date">${formatDate(it.date)}</span>`
+            : "",
+        ]
+          .filter(Boolean)
+          .join(`<span class="feed-meta-sep" aria-hidden="true">·</span>`);
         return `
           <li class="feed-item" data-expanded="false">
             <div class="feed-item__row">
               <div class="feed-item__body">
+                ${catHTML}
                 <div class="feed-item__title">${titleHTML}</div>
                 ${authorsHTML}
-                <div class="feed-item__meta">${line3}</div>
+                ${line3 ? `<div class="feed-item__meta">${line3}</div>` : ""}
               </div>
               <div class="feed-cell--due">
                 <button type="button" class="feed-expand" aria-expanded="false" aria-controls="${detailId}" aria-label="Show abstract">${chevronIcon()}</button>
@@ -693,8 +734,9 @@ function renderFeedCards(results, colorFor) {
           <li class="feed-item feed-item--link"${link ? ` data-href="${esc(link)}"` : ""}>
             <div class="feed-item__row">
               <div class="feed-item__body">
+                ${catHTML}
                 <div class="feed-item__title">${titleHTML}</div>
-                <div class="feed-item__meta">${metaHTML}</div>
+                ${metaDivHTML}
               </div>
               <div class="feed-cell--due">
                 ${deadlineHTML}
@@ -707,8 +749,9 @@ function renderFeedCards(results, colorFor) {
         <li class="feed-item" data-expanded="false">
           <div class="feed-item__row">
             <div class="feed-item__body">
+              ${catHTML}
               <div class="feed-item__title">${titleHTML}</div>
-              <div class="feed-item__meta">${metaHTML}</div>
+              ${metaDivHTML}
             </div>
             <div class="feed-cell--due">
               ${deadlineHTML}

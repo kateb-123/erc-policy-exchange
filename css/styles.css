@@ -880,13 +880,46 @@ main {
 .feed-item__meta {
   font-size: 0.86rem;
 }
-/* Category = coloured text (no box); hue from .feed-cat--cN below. */
+/* Category pill rides on its own line above the title (.tag supplies the
+   pill look; this just sets the spacing). */
+.feed-item__cat {
+  margin-bottom: 6px;
+}
+/* Small icon inside the pill (feed rows only). The SVG file (mask-image, set
+   inline from app.js so the URL resolves against the page, not this file) is
+   used as a mask over currentColor, so any icon dropped in assets/icons/
+   renders in the pill's own colour. */
+.tag__icon {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  vertical-align: -5px;
+  margin-right: 5px;
+  background-color: currentColor;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+}
+/* Everything under the pill indents to line up with the pill's TEXT
+   (9px pill padding + 1px border). Scoped so pill-less search rows stay flush. */
+.feed-item__cat ~ .feed-item__title,
+.feed-item__cat ~ .feed-item__authors,
+.feed-item__cat ~ .feed-item__meta {
+  padding-left: 10px;
+}
+/* And the right column (deadline/date + caret) drops past the pill row so it
+   sits level with the title. */
+.feed-item__row:has(.feed-item__cat) .feed-cell--due {
+  margin-top: 34px;
+}
+/* Search results still tag rows inline with coloured text; typography matches
+   .feed-source so the meta line reads as one piece. */
 .feed-cat {
-  font-family: var(--head);
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-size: 0.88rem;
+  font-weight: 600;
 }
 .feed-meta-sep {
   color: var(--faint);

@@ -13,3 +13,6 @@ npm-debug.log*
 
 # Local, machine-specific Claude settings (launch.json is kept — it's shareable)
 .claude/settings.local.json
+
+# Affinity transient lock files (the .af sources ARE tracked)
+*.af~lock~
