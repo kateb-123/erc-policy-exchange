@@ -20,28 +20,42 @@ const NEWS_CSV = "data/news.csv";
 // Category tabs across the top — you view one stream at a time (the
 // categories are distinct enough that a mixed "All" view isn't useful).
 // These mirror the ERC newsletter's timely sections.
+// label = full name (feed/section header); nav = short top-nav label;
+// card = landing-card label. icon is shared across nav, cards, and rows.
 const NEWS_TABS = [
   {
     value: "opportunity",
     label: "Opportunities",
+    nav: "Opportunities",
+    card: "Opportunities",
     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0 1 18 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3 1.5 1.5 3-3.75"/></svg>',
   },
   {
     value: "event",
     label: "Upcoming Events",
+    nav: "Events",
+    card: "Upcoming Events",
     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>',
   },
   {
     value: "research",
     label: "New Education Policy Research",
+    nav: "Research",
+    card: "Research",
     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25M9 16.5v.75m3-3v3M15 12v5.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>',
   },
   {
     value: "headline",
     label: "Education Headlines",
+    nav: "Headlines",
+    card: "Education Headlines",
     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 0 1-2.25 2.25M16.5 7.5V18a2.25 2.25 0 0 0 2.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 0 0 2.25 2.25h13.5M6 7.5h3v3H6v-3Z"/></svg>',
   },
 ];
+
+// Home icon for the top nav.
+const HOME_ICON =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75"/></svg>';
 
 // Today (YYYY-MM-DD). Upcoming Events drop off automatically once their date
 // passes, so the feed stays current with no manual pruning.
@@ -52,10 +66,11 @@ const isPastEvent = (it) =>
 // Single source of truth for what's shown.
 const state = {
   items: [],
-  type: NEWS_TABS[0].value, // active category tab (defaults to the first)
-  subtype: "all", // sub-category dropdown (scoped to the active tab)
+  view: "home", // "home" (landing page) | "section" (a category feed)
+  type: NEWS_TABS[0].value, // active category (when view === "section")
+  subtype: "all", // sub-category filter (scoped to the active category)
   q: "",
-  sort: null, // {key,dir} once a column header is clicked; null = per-tab default
+  sort: null, // {key,dir} once a sort is chosen; null = per-tab default
 };
 
 /* ------------------------------------------------------------
@@ -122,16 +137,28 @@ const isExpired = (it) => isPastEvent(it) || isPastDeadline(it);
 function readURL() {
   const p = new URLSearchParams(window.location.search);
   const type = (p.get("type") || "").toLowerCase();
-  if (NEWS_TABS.some((t) => t.value === type)) state.type = type;
-  state.q = p.get("q") || "";
+  state.q = (p.get("q") || "").trim();
+  // ?q= opens global search; a valid ?type= opens that section; anything else
+  // is the landing page.
+  if (NEWS_TABS.some((t) => t.value === type)) {
+    state.type = type;
+    state.view = "section";
+  } else {
+    state.view = "home";
+  }
+  if (state.q) state.view = "search";
   state.subtype = p.get("subtype") || "all";
 }
 
 function writeURL() {
   const p = new URLSearchParams();
-  if (state.type !== NEWS_TABS[0].value) p.set("type", state.type);
-  if (state.q.trim()) p.set("q", state.q.trim());
-  if (state.subtype !== "all") p.set("subtype", state.subtype);
+  // Search carries ?q=; a section carries ?type=; home is a clean URL.
+  if (state.view === "search") {
+    p.set("q", state.q.trim());
+  } else if (state.view === "section") {
+    p.set("type", state.type);
+    if (state.subtype !== "all") p.set("subtype", state.subtype);
+  }
   const qs = p.toString();
   const url = qs ? `${window.location.pathname}?${qs}` : window.location.pathname;
   window.history.replaceState(null, "", url);
@@ -151,12 +178,30 @@ function init(rows) {
     .reduce((m, d) => (d > m ? d : m), "");
   $("#news-updated").textContent = latest ? `Updated ${formatDate(latest)}` : "";
 
-  buildTabs();
+  buildNav();
+  buildLanding();
   rebuildSubtypes();
 
-  $("#news-search").value = state.q;
-  $("#news-search").addEventListener("input", (e) => {
-    state.q = e.target.value;
+  // Global search (top strip): typing searches every section at once; clearing
+  // returns to wherever you were (landing or a section).
+  const gs = $("#global-search");
+  gs.value = state.q;
+  gs.addEventListener("input", (e) => {
+    const q = e.target.value;
+    if (q.trim()) {
+      if (state.view !== "search") {
+        state.searchFrom = { view: state.view, type: state.type };
+        state.view = "search";
+      }
+      state.q = q;
+    } else {
+      state.q = "";
+      if (state.view === "search") {
+        const back = state.searchFrom || { view: "home" };
+        state.view = back.view;
+        if (back.type) state.type = back.type;
+      }
+    }
     render();
     writeURL();
   });
@@ -212,42 +257,91 @@ function bindSelect(sel, key) {
 }
 
 /* ------------------------------------------------------------
- * Category tabs
+ * Top navigation + landing
  * ------------------------------------------------------------ */
-function buildTabs() {
-  const el = $("#news-tabs");
-
-  el.innerHTML = NEWS_TABS.map((t) => {
-    return `
-      <button
-        type="button"
-        class="news-tab"
-        role="tab"
-        data-type="${t.value}"
-        aria-selected="${state.type === t.value}"
-      >
-        <span class="news-tab__icon" aria-hidden="true">${t.icon}</span>
-        <span>${esc(t.label)}</span>
-      </button>`;
-  }).join("");
+// Build the top nav strip: Home + the four sections.
+function buildNav() {
+  const el = $("#topnav");
+  const home = `
+    <button type="button" class="topnav__link topnav__home" data-view="home">
+      <span class="topnav__icon" aria-hidden="true">${HOME_ICON}</span>Home
+    </button>`;
+  // Section links are text-only; Home keeps its icon (it reads as the one
+  // utility control in the row).
+  const sections = NEWS_TABS.map(
+    (t) => `
+    <button type="button" class="topnav__link" data-type="${t.value}">${esc(t.nav)}</button>`
+  ).join("");
+  el.innerHTML = home + sections;
 
   el.addEventListener("click", (e) => {
-    const btn = e.target.closest(".news-tab");
-    if (btn) setType(btn.dataset.type);
+    const btn = e.target.closest(".topnav__link");
+    if (!btn) return;
+    if (btn.dataset.view === "home") setHome();
+    else if (btn.dataset.type) setType(btn.dataset.type);
   });
 }
 
-// Switch the active category tab. Sub-category is tab-specific, so it resets.
+// Build the landing-page section cards (icon + title).
+function buildLanding() {
+  const el = $("#landing-cards");
+  el.innerHTML = NEWS_TABS.map(
+    (t) => `
+    <button type="button" class="lcard" data-type="${t.value}">
+      <span class="lcard__icon" aria-hidden="true">${t.icon}</span>
+      <span class="lcard__title">${esc(t.card)}</span>
+    </button>`
+  ).join("");
+
+  el.addEventListener("click", (e) => {
+    const card = e.target.closest(".lcard");
+    if (card) setType(card.dataset.type);
+  });
+}
+
+// Highlight the active top-nav link (none while searching).
+function updateNavActive() {
+  $$("#topnav .topnav__link").forEach((b) => {
+    const active =
+      state.view === "search"
+        ? false
+        : state.view === "home"
+        ? b.dataset.view === "home"
+        : b.dataset.type === state.type;
+    b.classList.toggle("is-active", active);
+    if (active) b.setAttribute("aria-current", "page");
+    else b.removeAttribute("aria-current");
+  });
+}
+
+// Open a section. Sub-category is category-specific, so it resets; navigating
+// anywhere also leaves search mode.
 function setType(type) {
+  state.view = "section";
   state.type = type;
   state.subtype = "all";
-  state.sort = null; // each tab starts at its sensible default sort
-  $$("#news-tabs .news-tab").forEach((b) =>
-    b.setAttribute("aria-selected", String(b.dataset.type === type))
-  );
+  state.sort = null; // each section starts at its sensible default sort
+  clearSearch();
   rebuildSubtypes();
   render();
   writeURL();
+  window.scrollTo(0, 0);
+}
+
+// Return to the landing page.
+function setHome() {
+  state.view = "home";
+  clearSearch();
+  render();
+  writeURL();
+  window.scrollTo(0, 0);
+}
+
+function clearSearch() {
+  state.q = "";
+  state.searchFrom = null;
+  const gs = $("#global-search");
+  if (gs) gs.value = "";
 }
 
 /* ------------------------------------------------------------
@@ -475,28 +569,28 @@ function renderToolbar() {
       return `<button type="button" class="tsort${active ? " is-active" : ""}" data-sortkey="${s.key}" data-sortdir="${s.dir}" aria-pressed="${active}">${esc(s.label)}</button>`;
     })
     .join(`<span class="tsort-sep" aria-hidden="true">·</span>`);
+  // No visible "Sort" label — the options are self-describing; the group's
+  // aria-label still announces it for assistive tech.
   const sortGroup = `
-    <div class="tgroup" role="group" aria-label="Sort by">
-      <span class="tgroup__label">Sort</span>${sortHTML}
+    <div class="tgroup tgroup--sort" role="group" aria-label="Sort by">
+      ${sortHTML}
     </div>`;
 
-  // Category filter buttons only earn their place with 2+ sub-categories
-  // (Events are all webinars, so they get no category group).
+  // Category filter buttons render on every tab — even with a single
+  // sub-category — so the toolbar structure (SHOW row over SORT row) is
+  // identical as you move between sections.
   const subs = distinct("subtype", items);
-  let catGroup = "";
-  if (subs.length > 1) {
-    const catBtns = ["all", ...subs]
-      .map((v) => {
-        const active = state.subtype === v;
-        const label = v === "all" ? "All" : v;
-        return `<button type="button" class="tbtn${active ? " is-active" : ""}" data-subtype="${esc(v)}" aria-pressed="${active}">${esc(label)}</button>`;
-      })
-      .join("");
-    catGroup = `
-      <div class="tgroup" role="group" aria-label="Show category">
-        <span class="tgroup__label">Show</span>${catBtns}
-      </div>`;
-  }
+  const catBtns = ["all", ...subs]
+    .map((v) => {
+      const active = state.subtype === v;
+      const label = v === "all" ? "All" : v;
+      return `<button type="button" class="tbtn${active ? " is-active" : ""}" data-subtype="${esc(v)}" aria-pressed="${active}">${esc(label)}</button>`;
+    })
+    .join("");
+  const catGroup = `
+    <div class="tgroup tgroup--show" role="group" aria-label="Show category">
+      <span class="tgroup__label">Show</span>${catBtns}
+    </div>`;
 
   bar.innerHTML = catGroup + sortGroup;
   syncToolbarHeight();
@@ -639,7 +733,103 @@ function renderFeedCards(results, colorFor) {
     </div>`;
 }
 
+// Global search: match every live (non-expired) item in any section against
+// the query, newest first. Rows are flat links out to the source, tagged with
+// their section so you know where each hit lives.
+function renderSearch() {
+  $(".filter-bar").hidden = true;
+  $("#opp-toolbar").hidden = true;
+  syncToolbarHeight();
+
+  const q = state.q.trim();
+  const results = state.items
+    .filter((it) => !isExpired(it))
+    .filter((it) =>
+      [it.headline, it.blurb, it.source, it.authors, it.topic, it.subtype].some(
+        (f) => matches(f || "", q)
+      )
+    )
+    .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+
+  $("#news-count").innerHTML = `<strong>${results.length}</strong> ${
+    results.length === 1 ? "result" : "results"
+  } for “${esc(q)}”`;
+
+  const list = $("#news-list");
+  if (results.length === 0) {
+    list.innerHTML = `
+      <div class="state">
+        <strong>No matches for “${esc(q)}”</strong>
+        Try a different word, or browse a section from the menu above.
+      </div>`;
+    return;
+  }
+
+  const sectionLabel = {};
+  NEWS_TABS.forEach((t) => (sectionLabel[t.value] = t.nav));
+
+  const rows = results
+    .map((it) => {
+      const link = (it.link || "").trim();
+      const source = (it.source || "").trim();
+      const titleHTML = link
+        ? `<a class="feed-title-link" href="${esc(link)}" target="_blank" rel="noopener noreferrer">${esc(it.headline)}</a>`
+        : `<span class="feed-title-link">${esc(it.headline)}</span>`;
+      const meta =
+        `<span class="feed-cat feed-cat--c0">${esc(sectionLabel[(it.type || "").toLowerCase()] || it.type)}</span>` +
+        (source
+          ? `<span class="feed-meta-sep" aria-hidden="true">·</span><span class="feed-source">${esc(source)}</span>`
+          : "") +
+        (it.date
+          ? `<span class="feed-meta-sep" aria-hidden="true">·</span><span class="feed-meta-date">${formatDate(it.date)}</span>`
+          : "");
+      return `
+        <li class="feed-item feed-item--link"${link ? ` data-href="${esc(link)}"` : ""}>
+          <div class="feed-item__row">
+            <div class="feed-item__body">
+              <div class="feed-item__title">${titleHTML}</div>
+              <div class="feed-item__meta">${meta}</div>
+            </div>
+            <div class="feed-cell--due">
+              ${link ? `<span class="feed-goto" aria-hidden="true">↗</span>` : ""}
+            </div>
+          </div>
+        </li>`;
+    })
+    .join("");
+
+  list.innerHTML = `
+    <div class="feed feed--opp">
+      <div class="feed__head">
+        <span class="feed__head-l">Search Results</span>
+        <span class="feed__head-r"></span>
+      </div>
+      <ul class="feed__list" role="list">${rows}</ul>
+    </div>`;
+  wireRows(list);
+}
+
 function render() {
+  updateNavActive();
+
+  // The strip is identical on every page — persistent nav people learn once.
+  // (The landing cards introduce; the bar is the always-there utility.)
+
+  // Home view: show the landing page, hide the section feed, and stop.
+  if (state.view === "home") {
+    $("#landing").hidden = false;
+    $("#section").hidden = true;
+    return;
+  }
+  $("#landing").hidden = true;
+  $("#section").hidden = false;
+
+  // Global search view: results across every section, no per-tab toolbar.
+  if (state.view === "search") {
+    renderSearch();
+    return;
+  }
+
   const list = $("#news-list");
   const results = filter();
   $("#news-count").innerHTML = `<strong>${results.length}</strong> ${
