@@ -522,13 +522,15 @@ const MEDIUM_ICONS = {
 // Unknown subtypes simply get no icon, so new CSV categories degrade
 // gracefully.
 const CAT_ICONS = {
-  // Opportunities
+  // Opportunities (singular + plural keys — labels went singular 2026-07-15)
+  "call for proposals": "megaphone.svg",
   "calls for proposals": "megaphone.svg",
   "fellowships & programs": "fellowships-programs.svg",
   "funding & grants": "grants.svg",
   // Events — subtypes per Kate 2026-07-15: ERC Events / Texas A&M / Online /
   // Off-Campus / Webinar (Featured gets no pill). ERC Events shares the star
   // with ERC Research Brief (both = "ours").
+  "erc event": "star.svg",
   "erc events": "star.svg",
   "texas a&m": "on-campus.svg",
   "off-campus": "off-campus.svg",
@@ -537,7 +539,9 @@ const CAT_ICONS = {
   // Research
   "erc research brief": "star.svg",
   "peer-reviewed": "peer-reviewed.svg",
+  report: "reports.svg",
   reports: "reports.svg",
+  "working paper": "working-paper.svg",
   "working papers": "working-paper.svg",
   // Headlines
   national: "us.svg",
@@ -886,7 +890,7 @@ function render() {
   // styles.css). ERC's own + Texas subtypes always wear the solid Aggie-maroon
   // pill (Kate's rule); the rest cycle the 5-colour palette per tab so colours
   // stay distinct within a view.
-  const MAROON_SUBS = new Set(["erc events", "erc research brief", "texas"]);
+  const MAROON_SUBS = new Set(["erc event", "erc events", "erc research brief", "texas"]);
   const tabSubs = distinct(
     "subtype",
     state.items.filter((it) => (it.type || "").toLowerCase() === state.type)
