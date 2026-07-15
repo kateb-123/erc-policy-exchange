@@ -883,13 +883,21 @@ function render() {
   syncToolbars();
 
   // Give each sub-category in the active tab its own pill colour (palette in
-  // styles.css). Assigned per tab so colours are always distinct within a view.
+  // styles.css). ERC's own + Texas subtypes always wear the solid Aggie-maroon
+  // pill (Kate's rule); the rest cycle the 5-colour palette per tab so colours
+  // stay distinct within a view.
+  const MAROON_SUBS = new Set(["erc events", "erc research brief", "texas"]);
   const tabSubs = distinct(
     "subtype",
     state.items.filter((it) => (it.type || "").toLowerCase() === state.type)
   );
   const colorFor = {};
-  tabSubs.forEach((s, i) => (colorFor[s] = `tag--c${i % 6}`));
+  let ci = 0;
+  tabSubs.forEach((s) => {
+    colorFor[s] = MAROON_SUBS.has(s.trim().toLowerCase())
+      ? "tag--maroon"
+      : `tag--c${ci++ % 5}`;
+  });
 
   if (results.length === 0) {
     list.innerHTML = `

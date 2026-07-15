@@ -1029,47 +1029,56 @@ main {
   border: 1px solid transparent;
   white-space: nowrap;
 }
-/* Sub-category pill palette — each sub-category within a tab gets a distinct
-   colour (assigned in app.js). Max 4 sub-categories per tab, so 6 is plenty. */
+/* Sub-category pill palette (Kate's, 2026-07-15): SOLID Aggie maroon with
+   white text is reserved for "ours/Texas" subtypes (ERC Events, ERC Research
+   Brief, Texas — assigned in app.js), everything else cycles navy / gold /
+   teal / purple / orange as coloured text on that hue's tint. Gold + orange
+   text darkened a touch from Kate's swatches for small-text contrast; CVD +
+   contrast validated. */
+.tag--maroon {
+  background: #500000;
+  color: #fff;
+  border-color: #500000;
+}
 .tag--c0 {
-  background: #eaf5ee;
-  color: #245c39;
-  border-color: #cfe7d7;
+  background: #cfe0ef;
+  color: #1b3a5c;
+  border-color: #b9d1e6;
 }
 .tag--c1 {
-  background: #f3eefa;
-  color: #4a3072;
-  border-color: #e2d6ee;
+  background: #f2e8cb;
+  color: #8f6e14;
+  border-color: #e5d8a8;
 }
 .tag--c2 {
-  background: #eef2f8;
-  color: #2c4a72;
-  border-color: #d6e0ee;
+  background: #c2e5da;
+  color: #275d5d;
+  border-color: #a6d6c6;
 }
 .tag--c3 {
-  background: #fbf1e4;
-  color: #8a5a1a;
-  border-color: #f0dcc0;
+  background: #dfddeb;
+  color: #46426e;
+  border-color: #cbc8de;
 }
 .tag--c4 {
-  background: #e3f3f2;
-  color: #1f5b57;
-  border-color: #c8e6e3;
+  background: #f8dfbe;
+  color: #b5511f;
+  border-color: #efcd9e;
 }
 .tag--c5 {
-  background: #fdeef0;
-  color: #8a2f42;
-  border-color: #f3d6dc;
+  background: #f1eeec;
+  color: #6b5f58;
+  border-color: #ded7d2;
 }
 
-/* Category text colours (Opportunities metadata line) — same hues as the pills,
-   text only. NOTE: palette flagged for a revisit with Kate. */
-.feed-cat--c0 { color: #245c39; }
-.feed-cat--c1 { color: #4a3072; }
-.feed-cat--c2 { color: #2c4a72; }
-.feed-cat--c3 { color: #8a5a1a; }
-.feed-cat--c4 { color: #1f5b57; }
-.feed-cat--c5 { color: #8a2f42; }
+/* Category text colours (search-result rows) — same hues as the pills, text only. */
+.feed-cat--maroon { color: #500000; }
+.feed-cat--c0 { color: #1b3a5c; }
+.feed-cat--c1 { color: #8f6e14; }
+.feed-cat--c2 { color: #275d5d; }
+.feed-cat--c3 { color: #46426e; }
+.feed-cat--c4 { color: #b5511f; }
+.feed-cat--c5 { color: #6b5f58; }
 
 /* ---------- Empty / error state ---------- */
 .state {
