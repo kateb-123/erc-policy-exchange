@@ -42,13 +42,18 @@
 html {
   scroll-behavior: smooth;
 }
+/* Root type scale: 110.3% of the 16px default puts the pill text (0.68rem)
+   at 12px exactly; every rem-based font scales with it (Kate, 2026-07-15). */
+html {
+  font-size: 110.3%;
+}
 body {
   margin: 0;
   font-family: var(--sans);
   color: var(--body);
   background: var(--bg);
   line-height: 1.6;
-  font-size: 16px;
+  font-size: 1rem;
   -webkit-font-smoothing: antialiased;
 }
 h1, h2, h3 {
@@ -173,7 +178,7 @@ a:hover {
   margin: 0 0 8px;
 }
 .site-header__title {
-  font-size: 28px;
+  font-size: 31px;
   font-weight: 800;
   margin: 0;
   letter-spacing: -0.01em;
@@ -189,7 +194,7 @@ a:hover {
 .site-header__subtitle {
   margin: 0;
   color: rgba(255, 255, 255, 0.8);
-  font-size: 17px;
+  font-size: 19px;
 }
 
 /* ---------- Top strip ----------
@@ -296,7 +301,7 @@ a:hover {
 }
 .intro__title {
   font-family: var(--head);
-  font-size: 30px;
+  font-size: 33px;
   font-weight: 800;
   color: var(--maroon);
   margin: 0 0 12px;
@@ -891,9 +896,9 @@ main {
    renders in the pill's own colour. */
 .tag__icon {
   display: inline-block;
-  width: 18px;
-  height: 18px;
-  vertical-align: -5px;
+  width: 14px;
+  height: 14px;
+  vertical-align: -3px;
   margin-right: 5px;
   background-color: currentColor;
   -webkit-mask-repeat: no-repeat;
@@ -913,7 +918,7 @@ main {
 /* And the right column (deadline/date + caret) drops past the pill row so it
    sits level with the title. */
 .feed-item__row:has(.feed-item__cat) .feed-cell--due {
-  margin-top: 34px;
+  margin-top: 36px;
 }
 /* Search results still tag rows inline with coloured text; typography matches
    .feed-source so the meta line reads as one piece. */
