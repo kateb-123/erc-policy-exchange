@@ -15,7 +15,7 @@
     rel="stylesheet"
   />
   <!-- ?v= busts stale browser/Pages caches — bump when shipping big changes. -->
-  <link rel="stylesheet" href="css/styles.css?v=11" />
+  <link rel="stylesheet" href="css/styles.css?v=12" />
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -84,8 +84,9 @@
       <div class="cards cards--4" id="landing-cards"></div>
     </section>
 
-    <!-- Section view: filter toolbar, feed, then the count summary. -->
+    <!-- Section view: title + blurb, filter toolbar, feed, then the count. -->
     <div class="results" id="section" hidden>
+      <div class="section-head" id="section-head" hidden></div>
       <!-- Legacy search/dropdown bar — hidden for every tab now (card tabs use
            the button toolbar). Kept until the dead-code cleanup pass. -->
       <div class="filter-bar" role="search" hidden>
@@ -116,6 +117,6 @@
   </main>
 
   <script src="js/csv.js?v=2"></script>
-  <script src="js/app.js?v=14"></script>
+  <script src="js/app.js?v=15"></script>
 </body>
 </html>

@@ -30,6 +30,7 @@ const NEWS_TABS = [
     nav: "Opportunities",
     card: "Opportunities",
     icon: "megaphone.svg",
+    desc: "Fellowships, grants, and calls for proposals from across education research — deadlines at a glance.",
   },
   {
     value: "event",
@@ -37,6 +38,7 @@ const NEWS_TABS = [
     nav: "Events",
     card: "Upcoming Events",
     icon: "webinar.svg",
+    desc: "Webinars, talks, and convenings worth your calendar — from the ERC and beyond.",
   },
   {
     value: "research",
@@ -44,6 +46,7 @@ const NEWS_TABS = [
     nav: "Research",
     card: "Research",
     icon: "working-paper.svg",
+    desc: "New working papers, peer-reviewed studies, reports, and ERC research briefs.",
   },
   {
     value: "headline",
@@ -51,6 +54,7 @@ const NEWS_TABS = [
     nav: "Headlines",
     card: "Education Headlines",
     icon: "us.svg",
+    desc: "The education news we're following, from Texas and across the country.",
   },
 ];
 
@@ -710,8 +714,12 @@ function renderFeedCards(results, colorFor) {
       const titleHTML = link
         ? `<a class="feed-title-link" href="${esc(link)}" target="_blank" rel="noopener noreferrer">${esc(it.headline)}</a>`
         : `<span class="feed-title-link">${esc(it.headline)}</span>`;
+      // Detail-link label says what you actually get, per tab.
+      const linkLabel =
+        { opportunity: "View opportunity", event: "Event details", research: "Read the full paper" }[state.type] ||
+        "Read more";
       const linkHTML = link
-        ? `<a class="feed-link" href="${esc(link)}" target="_blank" rel="noopener noreferrer">Read the source ↗</a>`
+        ? `<a class="feed-link" href="${esc(link)}" target="_blank" rel="noopener noreferrer">${linkLabel} ↗</a>`
         : "";
       // Metadata line under the title: source · [icon] medium label (the
       // category rides in the pill above the title now). Both icon and label
@@ -822,6 +830,8 @@ function renderFeedCards(results, colorFor) {
 // the query, newest first. Rows are flat links out to the source, tagged with
 // their section so you know where each hit lives.
 function renderSearch() {
+  const head = $("#section-head");
+  if (head) head.hidden = true;
   $(".filter-bar").hidden = true;
   $("#opp-toolbar").hidden = true;
   syncToolbarHeight();
@@ -915,6 +925,16 @@ function render() {
     return;
   }
 
+  // Section head: the tab's full title + one-line description.
+  const headTab = NEWS_TABS.find((t) => t.value === state.type);
+  const head = $("#section-head");
+  if (head) {
+    head.hidden = !headTab;
+    if (headTab) {
+      head.innerHTML = `<h2 class="section-head__title">${esc(headTab.label)}</h2><p class="section-head__desc">${esc(headTab.desc)}</p>`;
+    }
+  }
+
   const list = $("#news-list");
   const results = filter();
   $("#news-count").innerHTML = `<strong>${results.length}</strong> ${
@@ -973,8 +993,12 @@ function render() {
       // each in its own colour. Falls back to the type if no subtype.
       const pillText = subtype || type;
       const pillClass = colorFor[subtype] || "tag--c0";
+      // Detail-link label says what you actually get, per tab.
+      const linkLabel =
+        { opportunity: "View opportunity", event: "Event details", research: "Read the full paper" }[state.type] ||
+        "Read more";
       const linkHTML = link
-        ? `<a class="feed-link" href="${esc(link)}" target="_blank" rel="noopener noreferrer">Read the source ↗</a>`
+        ? `<a class="feed-link" href="${esc(link)}" target="_blank" rel="noopener noreferrer">${linkLabel} ↗</a>`
         : "";
       // Title links straight to the source (the primary action); the row / caret
       // still expands the summary.

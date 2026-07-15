@@ -661,6 +661,25 @@ main {
   color: var(--faint);
   margin: 0 5px;
 }
+/* Section head: the tab's full title + a one-line description, above the
+   Quick Search toolbar. */
+.section-head {
+  margin: 6px 0 16px;
+}
+.section-head__title {
+  font-family: var(--head);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--maroon);
+  margin: 0 0 4px;
+}
+.section-head__desc {
+  color: var(--muted);
+  font-size: 0.95rem;
+  margin: 0;
+  max-width: 70ch;
+}
+
 /* Quiet "Clear" text action beside the Quick Search pills — dimmed until a
    category filter is actually on. */
 .tclear {
