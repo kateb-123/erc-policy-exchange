@@ -12,10 +12,12 @@
   --maroon-700: #6b1010;
   --maroon-tint: #f2e8e8;
 
-  --ink: #222;
-  --body: #333;
-  --muted: #626262;
-  --faint: #8a8a8a;
+  /* Text greys = the A&M grayscale (Kate 2026-07-15): Gray 900 / 800 / 600 —
+     darker than the old #333/#626262/#8a8a8a so nothing reads washed out. */
+  --ink: #202020;
+  --body: #202020;
+  --muted: #3e3e3e;
+  --faint: #626262;
 
   --line: #d9d4d0;
   --line-soft: #e7e1dc;
@@ -353,6 +355,20 @@ a:hover {
   width: 29px;
   height: 29px;
 }
+/* The glyph = one of Kate's SVGs masked over the maroon, same trick as the
+   pill icons. */
+.lcard__glyph {
+  display: block;
+  width: 29px;
+  height: 29px;
+  background-color: currentColor;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+}
 .lcard__title {
   font-family: var(--head);
   font-size: 1.08rem;
@@ -644,6 +660,30 @@ main {
 .tsort-sep {
   color: var(--faint);
   margin: 0 5px;
+}
+/* Quiet "Clear" text action beside the Quick Search pills — dimmed until a
+   category filter is actually on. */
+.tclear {
+  appearance: none;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--faint);
+  padding: 4px 2px;
+  margin-left: 6px;
+  cursor: pointer;
+}
+.tclear:hover {
+  color: var(--maroon);
+  text-decoration: underline;
+}
+.tclear:disabled {
+  opacity: 0.35;
+  cursor: default;
+  text-decoration: none;
+  pointer-events: none;
 }
 
 /* ---------- Feed table (expandable rows) ---------- */
@@ -979,7 +1019,11 @@ main {
   font-size: 0.88rem;
   font-weight: 600;
 }
-/* Medium icon (newspaper/radio/tv/…) riding just before the source name. */
+/* Medium type (icon + "Article"/"Radio"/…) riding after the source name. */
+.feed-medium-type {
+  color: var(--faint);
+  font-size: 0.85rem;
+}
 .feed-medium {
   display: inline-flex;
   vertical-align: -3px;
