@@ -74,9 +74,6 @@ body {
   flex-direction: column;
   min-height: 100vh;
 }
-main {
-  flex: 1 0 auto; /* short pages still push the footer to the viewport bottom */
-}
 h1, h2, h3 {
   font-family: var(--head);
 }
@@ -364,6 +361,12 @@ a:hover {
 
 /* ---------- Layout ---------- */
 main {
+  flex: 1 0 auto; /* short pages still push the footer to the viewport bottom */
+  /* width:100% is load-bearing: body is a flex column (for the sticky
+     footer), so without it `margin:0 auto` reads as a flex auto-margin and
+     `main` shrink-wraps to each tab's content — making the table width jump
+     between tabs. Forcing full width keeps every tab's frame identical. */
+  width: 100%;
   max-width: var(--maxw);
   margin: 0 auto;
   padding: 30px 24px 80px;
