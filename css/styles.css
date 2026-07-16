@@ -818,6 +818,41 @@ main {
   /* Indented under the tan row — the abstract reads as nested content. */
   padding: 14px 18px 18px 42px;
 }
+/* Events: facts panel beside the summary (two columns on wider screens). */
+.feed-item__detail--cols {
+  display: grid;
+  grid-template-columns: minmax(160px, 220px) 1fr;
+  gap: 26px;
+  align-items: start;
+}
+/* Standardized event facts (Date / Time / Location / Register). */
+.event-facts {
+  margin: 0;
+  display: grid;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--panel);
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+}
+.event-fact {
+  display: grid;
+  gap: 1px;
+}
+.event-fact__label {
+  font-family: var(--head);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--faint);
+}
+.event-fact__value {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--body);
+  font-weight: 600;
+}
 /* Link-only rows (Headlines): the row itself opens the source, so the right
    edge shows a small ↗ instead of an expand caret. */
 .feed-goto {
@@ -830,6 +865,15 @@ main {
 @media (max-width: 640px) {
   .feed__head {
     display: none;
+  }
+  /* The 42px nesting indent is too deep on a phone — pull the expanded
+     detail back so the summary gets full width, and stack the two columns. */
+  .feed-item__detail {
+    padding-left: 18px;
+  }
+  .feed-item__detail--cols {
+    grid-template-columns: 1fr;
+    gap: 14px;
   }
 }
 

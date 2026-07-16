@@ -675,6 +675,27 @@ function renderFeedCards(results, colorFor) {
       const linkHTML = link
         ? `<a class="feed-link" href="${esc(link)}" target="_blank" rel="noopener noreferrer">${DETAIL_LINK_LABEL[state.type] || "Read more"} ↗</a>`
         : "";
+      // Events: expanded detail leads with a standardized facts panel
+      // (date / time / location / register), then the summary. Each fact
+      // renders only when its CSV cell is filled, so sparse rows degrade.
+      const fact = (label, valueHTML) =>
+        valueHTML
+          ? `<div class="event-fact"><dt class="event-fact__label">${label}</dt><dd class="event-fact__value">${valueHTML}</dd></div>`
+          : "";
+      const eventFactsHTML =
+        state.type === "event"
+          ? `<dl class="event-facts">${
+              fact("Date", it.date ? esc(formatDate(it.date)) : "") +
+              fact("Time", esc((it.time || "").trim())) +
+              fact("Location", esc((it.location || "").trim())) +
+              fact(
+                "Register",
+                link
+                  ? `<a href="${esc(link)}" target="_blank" rel="noopener noreferrer">Event page ↗</a>`
+                  : ""
+              )
+            }</dl>`
+          : "";
       // Metadata line under the title: source · [icon] medium label (the
       // category rides in the pill above the title now). Both icon and label
       // come from the optional `medium` column; blank medium = source only.
@@ -759,9 +780,12 @@ function renderFeedCards(results, colorFor) {
               <button type="button" class="feed-expand" aria-expanded="false" aria-controls="${detailId}" aria-label="Show details">${chevronIcon()}</button>
             </div>
           </div>
-          <div class="feed-item__detail" id="${detailId}" hidden>
-            <p class="feed-detail__blurb">${esc(it.blurb)}</p>
-            ${linkHTML}
+          <div class="feed-item__detail${eventFactsHTML ? " feed-item__detail--cols" : ""}" id="${detailId}" hidden>
+            ${eventFactsHTML}
+            <div class="feed-detail__main">
+              <p class="feed-detail__blurb">${esc(it.blurb)}</p>
+              ${eventFactsHTML ? "" : linkHTML}
+            </div>
           </div>
         </li>`;
     })
