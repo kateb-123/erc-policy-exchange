@@ -300,9 +300,11 @@ a:hover {
 .intro {
   margin: 4px 0 34px;
 }
+/* Same size as the section titles (.section-head__title) so Home and the
+   tabs share one heading scale. */
 .intro__title {
   font-family: var(--head);
-  font-size: 33px;
+  font-size: 1.5rem;
   font-weight: 800;
   color: var(--maroon);
   margin: 0 0 12px;
