@@ -6,7 +6,7 @@
  * is CSV-driven: edit data/news.csv, reload, done.
  *
  * Interaction: category tabs across the top pick the stream; the
- * left rail (search + sub-category) refines within it. Cards expand
+ * Quick Search buttons refine within it. Rows expand
  * in place; the feed is sorted newest-first.
  *
  * Deep-link params (so a newsletter can link straight to a view):
@@ -75,7 +75,8 @@ const state = {
   type: NEWS_TABS[0].value, // active category (when view === "section")
   subtype: "all", // sub-category filter (scoped to the active category)
   q: "",
-  sort: null, // {key,dir} once a sort is chosen; null = per-tab default
+  sort: null, // {key,dir} once a sort action is chosen; null = per-tab default
+  searchFrom: null, // where to return when the global search box is cleared
 };
 
 /* ------------------------------------------------------------
@@ -185,7 +186,7 @@ function init(rows) {
 
   buildNav();
   buildLanding();
-  rebuildSubtypes();
+  validateSubtype();
 
   // Global search (top strip): typing searches every section at once; clearing
   // returns to wherever you were (landing or a section).
@@ -211,19 +212,9 @@ function init(rows) {
     writeURL();
   });
 
-  bindSelect("#news-subtype", "subtype");
-
-  // Opportunities-only sort toggle (Newest ⇄ Closing soon). Other tabs keep
-  // their sortable column headers, so this control is hidden for them.
-  $("#news-sort").addEventListener("change", (e) => {
-    state.sort =
-      e.target.value === "closing"
-        ? { key: "deadline", dir: "asc" }
-        : { key: "date", dir: "desc" };
-    render();
-  });
-
-  // Card-tab toolbar: sort text actions + category "view" buttons.
+  // Card-tab toolbar: sort text actions + category "view" buttons. The
+  // toolbar is rebuilt by render(), so afterwards we restore focus to the
+  // equivalent new button (keyboard users would otherwise be dropped).
   $("#opp-toolbar").addEventListener("click", (e) => {
     const btn = e.target.closest("[data-sortkey], [data-subtype]");
     if (!btn) return;
@@ -236,31 +227,37 @@ function init(rows) {
     }
     render();
     writeURL();
+    const again = $("#opp-toolbar").querySelector(
+      btn.dataset.sortkey
+        ? `[data-sortkey="${btn.dataset.sortkey}"][data-sortdir="${btn.dataset.sortdir}"]`
+        : `[data-subtype="${CSS.escape(btn.dataset.subtype)}"]`
+    );
+    if (again && !again.disabled) again.focus();
   });
 
   // Re-measure the sticky toolbar when the viewport changes (it can re-wrap).
   window.addEventListener("resize", syncToolbarHeight);
 
-  $("#news-reset").addEventListener("click", () => {
-    Object.assign(state, { subtype: "all", q: "" });
-    $("#news-search").value = "";
-    rebuildSubtypes();
-    render();
-    writeURL();
+  // One delegated listener covers every feed row ever rendered: the caret
+  // button toggles the detail, a click elsewhere on the row does the same
+  // (bigger target), and link-only rows open their source.
+  $("#news-list").addEventListener("click", (e) => {
+    const caretBtn = e.target.closest(".feed-expand");
+    if (caretBtn) {
+      toggleDetail(caretBtn);
+      return;
+    }
+    const row = e.target.closest(".feed-item__row");
+    if (!row || e.target.closest("a")) return;
+    const caret = row.querySelector(".feed-expand");
+    if (caret) toggleDetail(caret);
+    const linkItem = row.closest(".feed-item--link");
+    if (linkItem && linkItem.dataset.href) {
+      window.open(linkItem.dataset.href, "_blank", "noopener");
+    }
   });
 
   render();
-}
-
-// Wire a rail <select> to a key on state.
-function bindSelect(sel, key) {
-  const el = $(sel);
-  el.value = state[key];
-  el.addEventListener("change", () => {
-    state[key] = el.value;
-    render();
-    writeURL();
-  });
 }
 
 /* ------------------------------------------------------------
@@ -295,7 +292,7 @@ function buildLanding() {
   el.innerHTML = NEWS_TABS.map(
     (t) => `
     <button type="button" class="lcard" data-type="${t.value}">
-      <span class="lcard__icon" aria-hidden="true"><span class="lcard__glyph" style="-webkit-mask-image:url('assets/icons/${t.icon}');mask-image:url('assets/icons/${t.icon}')"></span></span>
+      <span class="lcard__icon" aria-hidden="true"><span class="lcard__glyph" ${iconMask(t.icon)}></span></span>
       <span class="lcard__title">${esc(t.card)}</span>
     </button>`
   ).join("");
@@ -329,7 +326,6 @@ function setType(type) {
   state.subtype = "all";
   state.sort = null; // each section starts at its sensible default sort
   clearSearch();
-  rebuildSubtypes();
   render();
   writeURL();
   window.scrollTo(0, 0);
@@ -363,16 +359,20 @@ function distinct(field, items = state.items) {
   return [...set].sort();
 }
 
-// Kate's per-tab subtype order (2026-07-15) — drives the SHOW button order AND
-// the colour cycle (1st non-maroon subtype = navy, then gold, teal, purple,
-// orange). Lowercase; both singular/plural spellings listed where labels
-// changed. Subtypes not listed here sink to the end alphabetically.
+// Kate's per-tab subtype order (2026-07-15) — drives the Quick Search button
+// order AND the colour cycle (1st non-maroon subtype = navy, then gold, teal,
+// purple, orange). Lowercase, matching the CSV labels. Subtypes not listed
+// here sink to the end alphabetically.
 const SUBTYPE_ORDER = {
-  event: ["erc event", "erc events", "texas a&m", "online", "online/webinar", "webinar", "off-campus"],
-  research: ["erc research brief", "working paper", "working papers", "peer-reviewed", "report", "reports"],
+  event: ["erc events", "texas a&m", "online", "webinar", "off-campus"],
+  research: ["erc research brief", "working paper", "peer-reviewed", "report"],
   headline: ["texas", "national"],
-  opportunity: ["call for proposals", "calls for proposals", "fellowships & programs", "funding & grants"],
+  opportunity: ["call for proposals", "fellowships & programs", "funding & grants"],
 };
+
+// ERC's own + Texas subtypes always wear the solid-border Aggie-maroon pill
+// (Kate's rule); everything else cycles the 5-colour palette.
+const MAROON_SUBS = new Set(["erc events", "erc research brief", "texas"]);
 function sortSubtypes(subs, type) {
   const order = SUBTYPE_ORDER[(type || "").toLowerCase()] || [];
   const rank = (s) => {
@@ -382,23 +382,20 @@ function sortSubtypes(subs, type) {
   return [...subs].sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
 }
 
-function fillSelect(el, allLabel, values, current) {
-  el.innerHTML =
-    `<option value="all">${esc(allLabel)}</option>` +
-    values.map((v) => `<option value="${esc(v)}">${esc(v)}</option>`).join("");
-  el.value = values.includes(current) ? current : "all";
+// Validate a ?subtype= deep-link against the active tab's live data — a stale
+// or misspelled value resets to "all" so the feed never renders empty.
+function validateSubtype() {
+  if (state.subtype === "all") return;
+  const subs = distinct("subtype", liveItemsOfType(state.type));
+  if (!subs.includes(state.subtype)) state.subtype = "all";
 }
 
-// Sub-category options = the newsletter groups within the active category.
-function rebuildSubtypes() {
-  const items = state.items.filter(
-    (it) => (it.type || "").toLowerCase() === state.type && !isExpired(it)
+// Every non-expired item in a category — the basis for that tab's feed,
+// subtype buttons, and deep-link validation.
+function liveItemsOfType(type) {
+  return state.items.filter(
+    (it) => (it.type || "").toLowerCase() === type && !isExpired(it)
   );
-  const subs = sortSubtypes(distinct("subtype", items), state.type);
-  const sel = $("#news-subtype");
-  fillSelect(sel, "All sub-categories", subs, state.subtype);
-  state.subtype = sel.value; // may have reset to "all" if now invalid
-  sel.disabled = subs.length === 0;
 }
 
 /* ------------------------------------------------------------
@@ -421,12 +418,10 @@ function filter() {
   return out;
 }
 
-// The sort in effect: the user's chosen column, or the per-tab default (by
-// date — soonest-first for Upcoming Events, newest-first for everything else).
+// The sort in effect: the user's chosen action, or the tab's first toolbar
+// option (soonest-first for Upcoming Events, newest-first everywhere else).
 function activeSort() {
-  return (
-    state.sort || { key: "date", dir: state.type === "event" ? "asc" : "desc" }
-  );
+  return state.sort || TOOLBAR_SORTS[state.type][0];
 }
 
 function sortComparator() {
@@ -446,45 +441,8 @@ function sortComparator() {
       return (b.date || "").localeCompare(a.date || "");
     };
   }
-  const valueOf = (it) => {
-    if (key === "title") return (it.headline || "").toLowerCase();
-    if (key === "category") return (it.subtype || "").toLowerCase();
-    if (key === "source") return (it.source || "").toLowerCase();
-    return it.date || ""; // date
-  };
-  return (a, b) => {
-    const va = valueOf(a);
-    const vb = valueOf(b);
-    if (va < vb) return -1 * mult;
-    if (va > vb) return 1 * mult;
-    return 0;
-  };
-}
-
-// Click a column header to sort by it; click the same one again to flip.
-function setSort(key) {
-  const cur = state.sort;
-  const dir =
-    cur && cur.key === key
-      ? cur.dir === "asc"
-        ? "desc"
-        : "asc"
-      : key === "date"
-      ? "desc"
-      : "asc";
-  state.sort = { key, dir };
-  render();
-}
-
-// A sortable <th>: a button that sorts by `key`, with aria-sort + an arrow.
-function sortHeader(key, label) {
-  const s = activeSort();
-  const active = s.key === key;
-  const ariaSort = active ? (s.dir === "asc" ? "ascending" : "descending") : "none";
-  const arrow = active ? (s.dir === "asc" ? " ▲" : " ▼") : "";
-  return `<th scope="col" aria-sort="${ariaSort}">
-            <button type="button" class="feed-sort${active ? " is-active" : ""}" data-key="${key}">${esc(label)}<span class="feed-sort__arrow" aria-hidden="true">${arrow}</span></button>
-          </th>`;
+  // Every remaining sort is by posted date.
+  return (a, b) => (a.date || "").localeCompare(b.date || "") * mult;
 }
 
 // Whole days from today to an ISO date (used for the "closing soon" cue).
@@ -492,16 +450,6 @@ function daysUntil(iso) {
   const [y, m, d] = iso.split("-").map(Number);
   const [ty, tm, td] = TODAY.split("-").map(Number);
   return Math.round((new Date(y, m - 1, d) - new Date(ty, tm - 1, td)) / 86400000);
-}
-
-// Show/hide the Opportunities sort toggle and keep it matched to the active
-// sort. Only Opportunities uses it; the other tabs sort via column headers.
-function syncSortControl() {
-  const el = $("#news-sort");
-  if (!el) return;
-  const isOpp = state.type === "opportunity";
-  el.hidden = !isOpp;
-  if (isOpp) el.value = activeSort().key === "deadline" ? "closing" : "newest";
 }
 
 // Sort options offered in each tab's button toolbar. Opportunities contrasts
@@ -528,24 +476,27 @@ const TOOLBAR_SORTS = {
 // Medium icons (Heroicons, inlined) + display labels — shown AFTER the source
 // ("K-12 Dive · [icon] Article") when the CSV's `medium` column is filled.
 // Blank medium = source only, so the column stays optional row by row.
-const MEDIUM_LABELS = {
-  newspaper: "Article",
-  radio: "Radio",
-  tv: "TV",
-  opinion: "Opinion",
-  blog: "Blog",
-};
-const MEDIUM_ICONS = {
-  newspaper:
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 0 1-2.25 2.25M16.5 7.5V18a2.25 2.25 0 0 0 2.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 0 0 2.25 2.25h13.5M6 7.5h3v3H6v-3Z"/></svg>',
-  radio:
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.348 14.652a3.75 3.75 0 0 1 0-5.304m5.304 0a3.75 3.75 0 0 1 0 5.304m-7.425 2.121a6.75 6.75 0 0 1 0-9.546m9.546 0a6.75 6.75 0 0 1 0 9.546M5.106 18.894c-3.808-3.807-3.808-9.98 0-13.788m13.788 0c3.808 3.807 3.808 9.98 0 13.788M12 12h.008v.008H12V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>',
-  tv:
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 20.25h12m-7.5-3v3m3-3v3m-10.125-3h17.25c.621 0 1.125-.504 1.125-1.125V4.875c0-.621-.504-1.125-1.125-1.125H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125Z"/></svg>',
-  opinion:
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"/></svg>',
-  blog:
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/></svg>',
+const MEDIA = {
+  newspaper: {
+    label: "Article",
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 0 1-2.25 2.25M16.5 7.5V18a2.25 2.25 0 0 0 2.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 0 0 2.25 2.25h13.5M6 7.5h3v3H6v-3Z"/></svg>',
+  },
+  radio: {
+    label: "Radio",
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.348 14.652a3.75 3.75 0 0 1 0-5.304m5.304 0a3.75 3.75 0 0 1 0 5.304m-7.425 2.121a6.75 6.75 0 0 1 0-9.546m9.546 0a6.75 6.75 0 0 1 0 9.546M5.106 18.894c-3.808-3.807-3.808-9.98 0-13.788m13.788 0c3.808 3.807 3.808 9.98 0 13.788M12 12h.008v.008H12V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>',
+  },
+  tv: {
+    label: "TV",
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 20.25h12m-7.5-3v3m3-3v3m-10.125-3h17.25c.621 0 1.125-.504 1.125-1.125V4.875c0-.621-.504-1.125-1.125-1.125H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125Z"/></svg>',
+  },
+  opinion: {
+    label: "Opinion",
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"/></svg>',
+  },
+  blog: {
+    label: "Blog",
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/></svg>',
+  },
 };
 
 // Small icons inside the category pills — FEED ROWS ONLY (the SHOW filter
@@ -555,15 +506,13 @@ const MEDIUM_ICONS = {
 // Unknown subtypes simply get no icon, so new CSV categories degrade
 // gracefully.
 const CAT_ICONS = {
-  // Opportunities (singular + plural keys — labels went singular 2026-07-15)
+  // Opportunities
   "call for proposals": "megaphone.svg",
-  "calls for proposals": "megaphone.svg",
   "fellowships & programs": "fellowships-programs.svg",
   "funding & grants": "grants.svg",
   // Events — subtypes per Kate 2026-07-15: ERC Events / Texas A&M / Online /
   // Off-Campus / Webinar (Featured gets no pill). ERC Events shares the star
   // with ERC Research Brief (both = "ours").
-  "erc event": "star.svg",
   "erc events": "star.svg",
   "texas a&m": "on-campus.svg",
   "off-campus": "off-campus.svg",
@@ -573,13 +522,27 @@ const CAT_ICONS = {
   "erc research brief": "star.svg",
   "peer-reviewed": "peer-reviewed.svg",
   report: "reports.svg",
-  reports: "reports.svg",
   "working paper": "working-paper.svg",
-  "working papers": "working-paper.svg",
   // Headlines
   national: "us.svg",
   texas: "texas.svg",
 };
+
+// Per-tab wording for the expanded detail's outbound link.
+const DETAIL_LINK_LABEL = {
+  opportunity: "View opportunity",
+  event: "Event details",
+  research: "Read the full paper",
+};
+
+// Shared helpers for the feed templates.
+const SEP = `<span class="feed-meta-sep" aria-hidden="true">·</span>`;
+const iconMask = (file) =>
+  `style="-webkit-mask-image:url('assets/icons/${file}');mask-image:url('assets/icons/${file}')"`;
+const titleLink = (link, headline) =>
+  link
+    ? `<a class="feed-title-link" href="${esc(link)}" target="_blank" rel="noopener noreferrer">${esc(headline)}</a>`
+    : `<span class="feed-title-link">${esc(headline)}</span>`;
 
 // Column labels for the card table's frozen header, per tab.
 // `expand: false` = rows don't expand in place; the row is a straight link to
@@ -605,27 +568,12 @@ function shortAuthors(raw) {
   return { text: names.slice(0, 3).join(", ") + ", et al.", truncated: true };
 }
 
-// Tabs using the card layout get a button toolbar (category views + sort text)
-// instead of the search box + dropdowns. Swap which one is visible per tab.
-function syncToolbars() {
-  const usesToolbar = !!TOOLBAR_SORTS[state.type];
-  $(".filter-bar").hidden = usesToolbar;
-  $("#opp-toolbar").hidden = !usesToolbar;
-  if (usesToolbar) {
-    // No search on these tabs — clear any stray query from another tab.
-    state.q = "";
-    $("#news-search").value = "";
-    renderToolbar();
-  }
-}
-
 // Build the card-tab toolbar: a Category group (only when there's more than one
 // sub-category to choose between) and a Sort group of lighter text actions.
 function renderToolbar() {
   const bar = $("#opp-toolbar");
-  const items = state.items.filter(
-    (it) => (it.type || "").toLowerCase() === state.type && !isExpired(it)
-  );
+  bar.hidden = false;
+  const items = liveItemsOfType(state.type);
   const cur = activeSort();
 
   // Sort = lighter text actions (not boxed buttons like the category filters).
@@ -676,10 +624,9 @@ function syncToolbarHeight() {
   );
 }
 
-// Opportunities & Events render as two-line cards: title + a right-hand date on
-// the first line, category · source on the second, expanding to the full blurb.
-// The right-hand value is the deadline (Opportunities) or the event date
-// (Events). Distinct from the column table Research/Headlines still use.
+// Every tab renders as card rows: category pill above the title, source (and
+// medium / authors / date) below, expanding in place to the full blurb. The
+// right-hand value is the deadline (Opportunities) or the date.
 function renderFeedCards(results, colorFor) {
   const isOpp = state.type === "opportunity";
   const expandable = (CARD_HEADERS[state.type] || {}).expand !== false;
@@ -694,9 +641,7 @@ function renderFeedCards(results, colorFor) {
       const catClass = colorFor[subtype] || "tag--c0";
       const catIcon = CAT_ICONS[catText.trim().toLowerCase()] || "";
       const catHTML = `<div class="feed-item__cat"><span class="tag ${catClass}">${
-        catIcon
-          ? `<span class="tag__icon" style="-webkit-mask-image:url('assets/icons/${catIcon}');mask-image:url('assets/icons/${catIcon}')" aria-hidden="true"></span>`
-          : ""
+        catIcon ? `<span class="tag__icon" ${iconMask(catIcon)} aria-hidden="true"></span>` : ""
       }${esc(catText)}</span></div>`;
       const detailId = `feed-detail-${i}`;
       // Right column: Opportunities show the deadline; Events show the event date.
@@ -711,26 +656,17 @@ function renderFeedCards(results, colorFor) {
       const deadlineHTML = rv.label
         ? `<span class="feed-deadline${soon}">${esc(rv.label)}</span>`
         : "";
-      const titleHTML = link
-        ? `<a class="feed-title-link" href="${esc(link)}" target="_blank" rel="noopener noreferrer">${esc(it.headline)}</a>`
-        : `<span class="feed-title-link">${esc(it.headline)}</span>`;
-      // Detail-link label says what you actually get, per tab.
-      const linkLabel =
-        { opportunity: "View opportunity", event: "Event details", research: "Read the full paper" }[state.type] ||
-        "Read more";
+      const titleHTML = titleLink(link, it.headline);
       const linkHTML = link
-        ? `<a class="feed-link" href="${esc(link)}" target="_blank" rel="noopener noreferrer">${linkLabel} ↗</a>`
+        ? `<a class="feed-link" href="${esc(link)}" target="_blank" rel="noopener noreferrer">${DETAIL_LINK_LABEL[state.type] || "Read more"} ↗</a>`
         : "";
       // Metadata line under the title: source · [icon] medium label (the
       // category rides in the pill above the title now). Both icon and label
       // come from the optional `medium` column; blank medium = source only.
-      const medKey = (it.medium || "").trim().toLowerCase();
-      const medIcon = MEDIUM_ICONS[medKey] || "";
-      const medLabel = MEDIUM_LABELS[medKey] || "";
-      const mediumHTML =
-        medIcon && medLabel
-          ? `<span class="feed-meta-sep" aria-hidden="true">·</span><span class="feed-medium-type"><span class="feed-medium" aria-hidden="true">${medIcon}</span>${esc(medLabel)}</span>`
-          : "";
+      const med = MEDIA[(it.medium || "").trim().toLowerCase()];
+      const mediumHTML = med
+        ? `${SEP}<span class="feed-medium-type"><span class="feed-medium" aria-hidden="true">${med.icon}</span>${esc(med.label)}</span>`
+        : "";
       const metaHTML = source
         ? `<span class="feed-source">${esc(source)}</span>${mediumHTML}`
         : "";
@@ -756,7 +692,7 @@ function renderFeedCards(results, colorFor) {
             : "",
         ]
           .filter(Boolean)
-          .join(`<span class="feed-meta-sep" aria-hidden="true">·</span>`);
+          .join(SEP);
         return `
           <li class="feed-item" data-expanded="false">
             <div class="feed-item__row">
@@ -778,7 +714,7 @@ function renderFeedCards(results, colorFor) {
           </li>`;
       }
       // Non-expandable tabs (Headlines): no caret, no detail — the whole row is
-      // a straight link to the source (data-href picked up in wireRows).
+      // a straight link to the source (data-href picked up by the delegated listener).
       if (!expandable) {
         return `
           <li class="feed-item feed-item--link"${link ? ` data-href="${esc(link)}"` : ""}>
@@ -832,7 +768,6 @@ function renderFeedCards(results, colorFor) {
 function renderSearch() {
   const head = $("#section-head");
   if (head) head.hidden = true;
-  $(".filter-bar").hidden = true;
   $("#opp-toolbar").hidden = true;
   syncToolbarHeight();
 
@@ -867,17 +802,14 @@ function renderSearch() {
     .map((it) => {
       const link = (it.link || "").trim();
       const source = (it.source || "").trim();
-      const titleHTML = link
-        ? `<a class="feed-title-link" href="${esc(link)}" target="_blank" rel="noopener noreferrer">${esc(it.headline)}</a>`
-        : `<span class="feed-title-link">${esc(it.headline)}</span>`;
-      const meta =
-        `<span class="feed-cat feed-cat--c0">${esc(sectionLabel[(it.type || "").toLowerCase()] || it.type)}</span>` +
-        (source
-          ? `<span class="feed-meta-sep" aria-hidden="true">·</span><span class="feed-source">${esc(source)}</span>`
-          : "") +
-        (it.date
-          ? `<span class="feed-meta-sep" aria-hidden="true">·</span><span class="feed-meta-date">${formatDate(it.date)}</span>`
-          : "");
+      const titleHTML = titleLink(link, it.headline);
+      const meta = [
+        `<span class="feed-cat">${esc(sectionLabel[(it.type || "").toLowerCase()] || it.type)}</span>`,
+        source ? `<span class="feed-source">${esc(source)}</span>` : "",
+        it.date ? `<span class="feed-meta-date">${formatDate(it.date)}</span>` : "",
+      ]
+        .filter(Boolean)
+        .join(SEP);
       return `
         <li class="feed-item feed-item--link"${link ? ` data-href="${esc(link)}"` : ""}>
           <div class="feed-item__row">
@@ -901,7 +833,6 @@ function renderSearch() {
       </div>
       <ul class="feed__list" role="list">${rows}</ul>
     </div>`;
-  wireRows(list);
 }
 
 function render() {
@@ -941,14 +872,10 @@ function render() {
     results.length === 1 ? "update" : "updates"
   }`;
 
-  syncSortControl();
-  syncToolbars();
+  renderToolbar();
 
   // Give each sub-category in the active tab its own pill colour (palette in
-  // styles.css). ERC's own + Texas subtypes always wear the solid Aggie-maroon
-  // pill (Kate's rule); the rest cycle the 5-colour palette per tab so colours
-  // stay distinct within a view.
-  const MAROON_SUBS = new Set(["erc event", "erc events", "erc research brief", "texas"]);
+  // styles.css; MAROON_SUBS always wear the maroon pill).
   const tabSubs = sortSubtypes(
     distinct(
       "subtype",
@@ -973,87 +900,12 @@ function render() {
     return;
   }
 
-  // Opportunities & Events use the two-line card layout; Research & Headlines
-  // keep the column table (for now).
-  if (TOOLBAR_SORTS[state.type]) {
-    list.innerHTML = renderFeedCards(results, colorFor);
-    wireRows(list);
-    return;
-  }
-
-  const rows = results
-    .map((it, i) => {
-      const type = (it.type || "").toLowerCase();
-      const link = (it.link || "").trim();
-      const source = (it.source || "").trim();
-      const subtype = (it.subtype || "").trim();
-      const detailId = `feed-detail-${i}`;
-      // The active tab already tells you the category, so the pill shows the
-      // sub-category (Funding & Grants, Webinar, Working Papers, Federal…),
-      // each in its own colour. Falls back to the type if no subtype.
-      const pillText = subtype || type;
-      const pillClass = colorFor[subtype] || "tag--c0";
-      // Detail-link label says what you actually get, per tab.
-      const linkLabel =
-        { opportunity: "View opportunity", event: "Event details", research: "Read the full paper" }[state.type] ||
-        "Read more";
-      const linkHTML = link
-        ? `<a class="feed-link" href="${esc(link)}" target="_blank" rel="noopener noreferrer">${linkLabel} ↗</a>`
-        : "";
-      // Title links straight to the source (the primary action); the row / caret
-      // still expands the summary.
-      const titleHTML = link
-        ? `<a class="feed-title-link" href="${esc(link)}" target="_blank" rel="noopener noreferrer">${esc(it.headline)}</a>`
-        : esc(it.headline);
-      return `
-        <tr class="feed-row">
-          <td class="feed-cell-title">${titleHTML}</td>
-          <td class="feed-cell-cat"><span class="tag ${pillClass}">${esc(pillText)}</span></td>
-          <td class="feed-cell-source">${esc(source)}</td>
-          <td class="feed-cell-date">${formatDate(it.date)}</td>
-          <td class="feed-cell-caret">
-            <button type="button" class="feed-expand" aria-expanded="false" aria-controls="${detailId}" aria-label="Show summary">${chevronIcon()}</button>
-          </td>
-        </tr>
-        <tr class="feed-detail" id="${detailId}" hidden>
-          <td colspan="5">
-            <p class="feed-detail__blurb">${esc(it.blurb)}</p>
-            ${linkHTML}
-          </td>
-        </tr>`;
-    })
-    .join("");
-
-  list.innerHTML = `
-    <div class="feed-scroll">
-      <table class="feed-table">
-        <colgroup>
-          <col class="col-title" />
-          <col class="col-cat" />
-          <col class="col-source" />
-          <col class="col-date" />
-          <col class="col-caret" />
-        </colgroup>
-        <thead>
-          <tr>
-            ${sortHeader("title", "Title")}
-            ${sortHeader("category", "Category")}
-            ${sortHeader("source", "Source")}
-            ${sortHeader("date", "Date")}
-            <th scope="col"><span class="sr-only">Summary</span></th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>`;
-
-  wireRows(list);
+  list.innerHTML = renderFeedCards(results, colorFor);
 }
 
 // Toggle one item's detail via its caret button (the accessible expand
-// control). Works for both the table rows and the Opportunity cards: the card's
-// data-expanded drives its collapsed/expanded styling; both reveal the detail
-// region named by aria-controls.
+// control): data-expanded drives the row's collapsed/expanded styling, and the
+// detail region named by aria-controls shows/hides.
 function toggleDetail(caretBtn) {
   const expanded = caretBtn.getAttribute("aria-expanded") === "true";
   caretBtn.setAttribute("aria-expanded", String(!expanded));
@@ -1061,34 +913,6 @@ function toggleDetail(caretBtn) {
   if (item) item.setAttribute("data-expanded", String(!expanded));
   const detail = document.getElementById(caretBtn.getAttribute("aria-controls"));
   if (detail) detail.hidden = expanded;
-}
-
-function wireRows(root) {
-  // The caret button is the accessible expand control (keyboard-operable).
-  $$(".feed-expand", root).forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      toggleDetail(btn);
-    });
-  });
-  // Clicking elsewhere on the row/card also expands (a bigger target); clicks on
-  // the title link or the caret do their own thing.
-  $$(".feed-row, .feed-item__row", root).forEach((row) => {
-    row.addEventListener("click", (e) => {
-      if (e.target.closest("a") || e.target.closest(".feed-expand")) return;
-      const caret = row.querySelector(".feed-expand");
-      if (caret) toggleDetail(caret);
-      // Link-only rows (Headlines): the whole row goes straight to the source.
-      const linkItem = row.closest(".feed-item--link");
-      if (linkItem && linkItem.dataset.href) {
-        window.open(linkItem.dataset.href, "_blank", "noopener");
-      }
-    });
-  });
-  // Sortable column headers (table tabs only).
-  $$(".feed-sort", root).forEach((btn) => {
-    btn.addEventListener("click", () => setSort(btn.dataset.key));
-  });
 }
 
 function chevronIcon() {

@@ -11,11 +11,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Work+Sans:wght@500;600;700;800&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Work+Sans:wght@600;700;800&display=swap"
     rel="stylesheet"
   />
   <!-- ?v= busts stale browser/Pages caches — bump when shipping big changes. -->
-  <link rel="stylesheet" href="css/styles.css?v=17" />
+  <link rel="stylesheet" href="css/styles.css?v=18" />
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -87,26 +87,6 @@
     <!-- Section view: title + blurb, filter toolbar, feed, then the count. -->
     <div class="results" id="section" hidden>
       <div class="section-head" id="section-head" hidden></div>
-      <!-- Legacy search/dropdown bar — hidden for every tab now (card tabs use
-           the button toolbar). Kept until the dead-code cleanup pass. -->
-      <div class="filter-bar" role="search" hidden>
-        <div class="search-wrap">
-          <input
-            type="search"
-            class="search-input"
-            id="news-search"
-            placeholder="Search headlines &amp; blurbs…"
-            aria-label="Search headlines and blurbs"
-            autocomplete="off"
-          />
-        </div>
-        <select class="rail-select" id="news-subtype" aria-label="Sub-category"></select>
-        <select class="rail-select" id="news-sort" aria-label="Sort opportunities" hidden>
-          <option value="newest">Sort: Newest</option>
-          <option value="closing">Sort: Closing soon</option>
-        </select>
-        <button class="rail__reset" id="news-reset" type="button">Clear filters</button>
-      </div>
       <div class="opp-toolbar" id="opp-toolbar" hidden></div>
       <div class="news-list" id="news-list"></div>
       <div class="results__meta">
@@ -117,6 +97,6 @@
   </main>
 
   <script src="js/csv.js?v=2"></script>
-  <script src="js/app.js?v=19"></script>
+  <script src="js/app.js?v=21"></script>
 </body>
 </html>

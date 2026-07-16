@@ -19,6 +19,14 @@
   --muted: #3e3e3e;
   --faint: #626262;
 
+  /* Category pill palette (Kate's, from her Adobe set): ink = text/icon,
+     line = the pill's hairline border (a mid-tone of the same hue). */
+  --cat0-ink: #1b3a5c; --cat0-line: #8fb3d4; /* navy   */
+  --cat1-ink: #8f6e14; --cat1-line: #cbb35c; /* gold   */
+  --cat2-ink: #275d5d; --cat2-line: #6fb5a2; /* teal   */
+  --cat3-ink: #46426e; --cat3-line: #a9a5c9; /* purple */
+  --cat4-ink: #b5511f; --cat4-line: #e0a173; /* orange */
+
   --line: #d9d4d0;
   --line-soft: #e7e1dc;
   --bg: #ffffff;
@@ -40,6 +48,11 @@
 /* ---------- Base ---------- */
 * {
   box-sizing: border-box;
+}
+/* One rule makes the hidden attribute reliable everywhere, even where a
+   display value is set elsewhere. */
+[hidden] {
+  display: none !important;
 }
 html {
   scroll-behavior: smooth;
@@ -113,14 +126,6 @@ a:hover {
   gap: 24px;
   flex-wrap: wrap;
 }
-
-/* Keep the title + subtitle in a left column so the long subtitle wraps
-   instead of spanning full width and pushing the brand block below it. */
-.site-header__intro {
-  flex: 1 1 340px;
-  max-width: 640px;
-}
-
 /* Right-side brand block: logo beside the vertically stacked contact links. */
 .site-header__brand {
   flex: 0 0 auto;
@@ -161,24 +166,6 @@ a:hover {
   height: 16px;
   flex-shrink: 0;
 }
-/* The category tabs live in their own lighter-maroon bar so the menu stands
-   apart from the header. */
-.header-nav {
-  background: var(--maroon-soft);
-}
-.header-nav__inner {
-  max-width: var(--maxw);
-  margin: 0 auto;
-  padding: 0 24px;
-}
-.site-header__eyebrow {
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.72);
-  margin: 0 0 8px;
-}
 .site-header__title {
   font-size: 31px;
   font-weight: 800;
@@ -193,16 +180,11 @@ a:hover {
   text-decoration: none;
   opacity: 0.9;
 }
-.site-header__subtitle {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 19px;
-}
 
 /* ---------- Top strip ----------
    Light grey (not the dusty maroon) — dark links, maroon active underline. */
 .topnav {
-  background: #fbf7f4;
+  background: var(--panel);
   border-bottom: 1px solid var(--line-soft);
 }
 .topnav__in {
@@ -219,9 +201,6 @@ a:hover {
   align-items: center;
   gap: 26px; /* roomier — the links breathe across the strip */
   flex-wrap: wrap;
-}
-.topnav--bare .topnav__links {
-  display: none;
 }
 .topnav__search {
   margin-left: auto;
@@ -293,10 +272,6 @@ a:hover {
 }
 
 /* ---------- Landing page ---------- */
-.landing[hidden],
-.results[hidden] {
-  display: none;
-}
 .intro {
   margin: 4px 0 34px;
 }
@@ -352,23 +327,12 @@ a:hover {
   align-items: center;
   justify-content: center;
 }
-.lcard__icon svg {
-  width: 29px;
-  height: 29px;
-}
 /* The glyph = one of Kate's SVGs masked over the maroon, same trick as the
    pill icons. */
 .lcard__glyph {
   display: block;
   width: 29px;
   height: 29px;
-  background-color: currentColor;
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  -webkit-mask-size: contain;
-  mask-repeat: no-repeat;
-  mask-position: center;
-  mask-size: contain;
 }
 .lcard__title {
   font-family: var(--head);
@@ -394,23 +358,6 @@ main {
   margin: 0 auto;
   padding: 30px 24px 80px;
 }
-.layout {
-  display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: 32px;
-  align-items: start;
-}
-
-/* ---------- Filter rail ---------- */
-.rail {
-  position: sticky;
-  top: 20px;
-  background: var(--panel);
-  border: 1px solid var(--line-soft);
-  border-radius: var(--radius);
-  padding: 20px;
-  box-shadow: var(--shadow);
-}
 .rail__group + .rail__group {
   margin-top: 20px;
 }
@@ -422,45 +369,6 @@ main {
   font-weight: 700;
   color: var(--muted);
   margin: 0 0 10px;
-}
-.search-wrap {
-  position: relative;
-}
-.search-input {
-  width: 100%;
-  font-family: inherit;
-  font-size: 0.92rem;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #fff;
-  color: var(--ink);
-}
-.search-input:focus {
-  border-color: var(--maroon);
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(80, 0, 0, 0.12);
-}
-.rail-select {
-  width: 100%;
-  font-family: inherit;
-  font-size: 0.9rem;
-  padding: 9px 10px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #fff;
-  color: var(--ink);
-  cursor: pointer;
-}
-.rail-select:focus {
-  border-color: var(--maroon);
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(80, 0, 0, 0.12);
-}
-.rail-select:disabled {
-  background: var(--panel);
-  color: var(--faint);
-  cursor: not-allowed;
 }
 .rail__reset {
   margin-top: 20px;
@@ -501,48 +409,6 @@ main {
   color: var(--faint);
   margin: 0;
 }
-
-/* ---------- Category nav (vertical sidebar) ---------- */
-.sidenav {
-  position: sticky;
-  top: 20px;
-  background: var(--warm);
-  border: 1px solid var(--line-soft);
-  border-radius: var(--radius);
-  padding: 10px 8px;
-}
-.news-tabs {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-.news-tab {
-  appearance: none;
-  border: 0;
-  border-left: 3px solid transparent;
-  background: transparent;
-  font-family: var(--head);
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--muted);
-  text-align: left;
-  width: 100%;
-  padding: 11px 14px;
-  cursor: pointer;
-  border-radius: 0 8px 8px 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 11px;
-}
-.news-tab:hover {
-  color: var(--maroon);
-  background: rgba(80, 0, 0, 0.05);
-}
-.news-tab[aria-selected="true"] {
-  color: var(--maroon);
-  border-left-color: var(--maroon);
-  background: var(--maroon-tint);
-}
 .news-tab__icon {
   display: inline-flex;
   align-items: center;
@@ -552,31 +418,6 @@ main {
   width: 18px;
   height: 18px;
 }
-
-/* ---------- Filter toolbar (horizontal, above the table) ---------- */
-.filter-bar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 0 0 16px;
-  flex-wrap: wrap;
-}
-.filter-bar .search-wrap {
-  flex: 1 1 280px;
-}
-.filter-bar .rail-select {
-  width: auto;
-  min-width: 220px;
-}
-.filter-bar .rail__reset {
-  margin-top: 0;
-  width: auto;
-  white-space: nowrap;
-}
-.filter-bar[hidden] {
-  display: none;
-}
-
 /* ---------- Card-tab button toolbar (category views + sort) ----------
    Sticky: the filters stay pinned while the list scrolls, and the table
    header (.feed__head) docks directly beneath them (offset measured into
@@ -595,9 +436,6 @@ main {
   gap: 10px 26px;
   margin: 0;
   padding: 10px 0 14px;
-}
-.opp-toolbar[hidden] {
-  display: none;
 }
 .tgroup {
   display: flex;
@@ -704,38 +542,6 @@ main {
   text-decoration: none;
   pointer-events: none;
 }
-
-/* ---------- Feed table (expandable rows) ---------- */
-.feed-scroll {
-  overflow-x: auto;
-  border: 1px solid var(--line-soft);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-}
-.feed-table {
-  width: 100%;
-  /* Keeps Title readable; narrower viewports scroll (.feed-scroll) rather
-     than collapsing the Title column. */
-  min-width: 760px;
-  border-collapse: collapse;
-  background: var(--card);
-  font-size: 0.92rem;
-  /* Fixed layout so column widths stay constant across every row and tab,
-     instead of resizing to fit each view's content. */
-  table-layout: fixed;
-}
-.col-cat {
-  width: 200px;
-}
-.col-source {
-  width: 180px;
-}
-.col-date {
-  width: 110px;
-}
-.col-caret {
-  width: 44px;
-}
 /* col-title takes the remaining space. */
 .feed-table thead th {
   background: var(--maroon);
@@ -747,43 +553,6 @@ main {
   text-align: left;
   padding: 12px 16px;
   white-space: nowrap;
-}
-.feed-row {
-  cursor: pointer;
-}
-.feed-row > td {
-  padding: 12px 16px;
-  border-top: 1px solid var(--line-soft);
-  vertical-align: middle;
-  overflow-wrap: break-word;
-}
-.feed-row:hover > td,
-.feed-row:has(.feed-expand[aria-expanded="true"]) > td {
-  background: var(--panel);
-}
-.feed-cell-date {
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-.feed-cell-title {
-  font-weight: 600;
-  color: var(--ink);
-  min-width: 18ch;
-}
-.feed-cell-source {
-  color: var(--muted);
-}
-.feed-cell-caret {
-  width: 1%;
-  text-align: right;
-}
-.feed-detail[hidden] {
-  display: none;
-}
-.feed-detail > td {
-  padding: 4px 16px 18px;
-  background: var(--panel);
 }
 /* "Abstract" label above an expanded research summary. */
 .feed-detail__label {
@@ -838,29 +607,6 @@ main {
 }
 .feed-expand:hover {
   background: rgba(80, 0, 0, 0.07);
-}
-/* Sortable column headers (buttons inside the maroon <th>). */
-.feed-sort {
-  appearance: none;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-  color: #fff;
-  font-family: var(--head);
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-}
-.feed-sort:hover {
-  text-decoration: underline;
-}
-.feed-sort__arrow {
-  font-size: 0.72em;
-  margin-left: 3px;
 }
 .chevron {
   flex-shrink: 0;
@@ -961,6 +707,11 @@ main {
   height: 14px;
   vertical-align: -3px;
   margin-right: 5px;
+}
+/* Both masked-icon spans paint their SVG (set inline as mask-image) with
+   currentColor — one shared mechanism. */
+.tag__icon,
+.lcard__glyph {
   background-color: currentColor;
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-position: center;
@@ -1053,9 +804,6 @@ main {
 .feed-deadline--soon {
   color: var(--maroon);
 }
-.feed-item__detail[hidden] {
-  display: none;
-}
 .feed-item__detail {
   /* Indented under the tan row — the abstract reads as nested content. */
   padding: 14px 18px 18px 42px;
@@ -1098,48 +846,16 @@ main {
    keeps a full-strength border since it IS the brand accent). */
 .tag--maroon {
   background: transparent;
-  color: #500000;
-  border-color: #500000;
+  color: var(--maroon);
+  border-color: var(--maroon);
 }
-.tag--c0 {
-  background: transparent;
-  color: #1b3a5c;
-  border-color: #8fb3d4;
-}
-.tag--c1 {
-  background: transparent;
-  color: #8f6e14;
-  border-color: #cbb35c;
-}
-.tag--c2 {
-  background: transparent;
-  color: #275d5d;
-  border-color: #6fb5a2;
-}
-.tag--c3 {
-  background: transparent;
-  color: #46426e;
-  border-color: #a9a5c9;
-}
-.tag--c4 {
-  background: transparent;
-  color: #b5511f;
-  border-color: #e0a173;
-}
-.tag--c5 {
-  background: transparent;
-  color: #6b5f58;
-  border-color: #b8ada6;
-}
+.tag--c0 { background: transparent; color: var(--cat0-ink); border-color: var(--cat0-line); }
+.tag--c1 { background: transparent; color: var(--cat1-ink); border-color: var(--cat1-line); }
+.tag--c2 { background: transparent; color: var(--cat2-ink); border-color: var(--cat2-line); }
+.tag--c3 { background: transparent; color: var(--cat3-ink); border-color: var(--cat3-line); }
+.tag--c4 { background: transparent; color: var(--cat4-ink); border-color: var(--cat4-line); }
 
 /* Category text colours (search-result rows) — same hues as the pills, text only. */
-.feed-cat--maroon { color: #500000; }
-.feed-cat--c0 { color: #1b3a5c; }
-.feed-cat--c1 { color: #8f6e14; }
-.feed-cat--c2 { color: #275d5d; }
-.feed-cat--c3 { color: #46426e; }
-.feed-cat--c4 { color: #b5511f; }
-.feed-cat--c5 { color: #6b5f58; }
 
 /* ---------- Empty / error state ---------- */
 .state {
@@ -1163,118 +879,57 @@ main {
   font-size: 0.88em;
   color: var(--maroon-700);
 }
-
-/* ---------- Footer ---------- */
-.site-footer {
-  max-width: var(--maxw);
-  margin: 0 auto;
-  padding: 24px;
-  color: var(--faint);
-  font-size: 0.82rem;
-  border-top: 1px solid var(--line-soft);
-}
-.site-footer code {
-  background: var(--maroon-tint);
-  padding: 1px 6px;
-  border-radius: 4px;
-  color: var(--maroon-700);
-}
-
 /* ---------- Responsive ---------- */
 @media (max-width: 780px) {
-  .layout {
-    grid-template-columns: 1fr;
-    gap: 20px;
+  /* Nav strip: tighter links, and the search drops to its own full-width row. */
+  .topnav__links {
+    gap: 2px;
   }
-  .sidenav {
-    position: static;
+  .topnav__link {
+    padding: 11px 9px;
+    font-size: 0.85rem;
   }
-  /* Category nav goes horizontal (wrapping) above the results on phones. */
-  .news-tabs {
-    flex-direction: row;
-    flex-wrap: wrap;
+  .topnav__search {
+    flex: 1 1 100%;
+    margin-left: 0;
+    padding-top: 0;
   }
-  .news-tab {
-    width: auto;
-    border-left: 0;
-    border-bottom: 3px solid transparent;
-    border-radius: 8px;
-  }
-  .news-tab[aria-selected="true"] {
-    border-left-color: transparent;
-    border-bottom-color: var(--maroon);
+  .topnav__search input,
+  .topnav__search input:focus {
+    width: 100%;
   }
 
-  /* Table → stacked cards, so phones read top-to-bottom (no side-scroll). */
-  .feed-scroll {
-    overflow-x: visible;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
+  /* The toolbar un-sticks (it eats half a phone screen); the table header
+     sticks to the very top instead. */
+  .opp-toolbar {
+    position: static;
   }
-  .feed-table {
-    min-width: 0;
+  .feed__head {
+    top: 0;
   }
-  .feed-table colgroup,
-  .feed-table thead {
-    display: none;
+
+  /* Feed rows stack: full-width body, the date/deadline + caret line drops
+     below the text instead of squeezing the title into a sliver. */
+  .feed-item__row {
+    flex-wrap: wrap;
+    gap: 6px 18px;
   }
-  .feed-table,
-  .feed-table tbody {
-    display: block;
+  .feed-item__body {
+    flex: 1 1 100%;
   }
-  .feed-row {
-    display: block;
-    position: relative;
-    background: var(--card);
-    border: 1px solid var(--line-soft);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 14px 46px 14px 16px;
-    margin-bottom: 10px;
+  .feed-cell--due {
+    padding-top: 0;
   }
-  .feed-row:has(.feed-expand[aria-expanded="true"]) {
-    margin-bottom: 0;
-    border-radius: var(--radius) var(--radius) 0 0;
+
+  /* Landing cards: 4-across becomes 2-across. */
+  .cards--4 {
+    grid-template-columns: repeat(2, 1fr);
   }
-  .feed-row > td {
-    display: block;
-    border: 0;
-    padding: 2px 0;
-    background: none !important;
-  }
-  .feed-cell-title {
-    font-size: 1rem;
-  }
-  .feed-cell-source,
-  .feed-cell-date {
-    font-size: 0.85rem;
-    white-space: normal;
-  }
-  .feed-cell-source::before {
-    content: "Source · ";
-    color: var(--faint);
-  }
-  .feed-cell-date::before {
-    content: "Date · ";
-    color: var(--faint);
-  }
-  .feed-cell-caret {
-    position: absolute;
-    top: 8px;
-    right: 6px;
-    width: auto;
-  }
-  .feed-detail {
-    display: block;
-    margin: 0 0 10px;
-  }
-  .feed-detail > td {
-    display: block;
-    border: 1px solid var(--line-soft);
-    border-top: 0;
-    border-radius: 0 0 var(--radius) var(--radius);
-    padding: 12px 16px 16px;
+}
+
+@media (max-width: 440px) {
+  .cards--4 {
+    grid-template-columns: 1fr;
   }
 }
 
