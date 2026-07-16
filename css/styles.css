@@ -260,6 +260,10 @@ a:hover {
   color: var(--maroon);
   border-bottom-color: var(--maroon);
 }
+/* Mobile-only hamburger — invisible at desktop widths. */
+.topnav__menu-btn {
+  display: none;
+}
 .topnav__home {
   padding-left: 8px;
 }
@@ -881,22 +885,74 @@ main {
 }
 /* ---------- Responsive ---------- */
 @media (max-width: 780px) {
-  /* Nav strip: tighter links, and the search drops to its own full-width row. */
-  .topnav__links {
-    gap: 2px;
+  /* Masthead slims down: smaller title + logo, contact links hidden (they
+     live on the desktop header and inside the site itself). */
+  .site-header__inner {
+    padding: 16px 24px 14px;
+    gap: 14px;
+    flex-wrap: nowrap;
   }
-  .topnav__link {
-    padding: 11px 9px;
-    font-size: 0.85rem;
+  .site-header__title {
+    font-size: 23px;
+  }
+  .site-header__logo {
+    height: 32px;
+  }
+  .site-header__contact {
+    display: none;
+  }
+
+  /* Nav strip becomes hamburger + search on one row; the links live in a
+     tap-to-open panel below (closed on navigation by app.js). */
+  .topnav__menu-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    order: 1;
+    appearance: none;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    font-family: var(--head);
+    font-weight: 700;
+    font-size: 0.92rem;
+    color: var(--maroon);
+    padding: 12px 4px;
+  }
+  .topnav__menu-btn svg {
+    width: 20px;
+    height: 20px;
   }
   .topnav__search {
-    flex: 1 1 100%;
-    margin-left: 0;
-    padding-top: 0;
+    order: 2;
+    flex: 1 1 auto;
+    margin-left: 12px;
   }
   .topnav__search input,
   .topnav__search input:focus {
     width: 100%;
+  }
+  .topnav__links {
+    order: 3;
+    display: none;
+    flex: 1 1 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 2px 0 10px;
+  }
+  .topnav.is-open .topnav__links {
+    display: flex;
+  }
+  .topnav__link {
+    padding: 12px 10px;
+    font-size: 1rem;
+    border-bottom: 0;
+    border-left: 3px solid transparent;
+  }
+  .topnav__link.is-active {
+    border-left-color: var(--maroon);
+    background: rgba(80, 0, 0, 0.04);
   }
 
   /* The toolbar un-sticks (it eats half a phone screen); the table header

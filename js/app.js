@@ -238,6 +238,13 @@ function init(rows) {
   // Re-measure the sticky toolbar when the viewport changes (it can re-wrap).
   window.addEventListener("resize", syncToolbarHeight);
 
+  // Mobile hamburger: toggles the collapsed nav panel (CSS shows the button
+  // and hides the links only under the mobile breakpoint).
+  $("#menu-btn").addEventListener("click", () => {
+    const open = $(".topnav").classList.toggle("is-open");
+    $("#menu-btn").setAttribute("aria-expanded", String(open));
+  });
+
   // One delegated listener covers every feed row ever rendered: the caret
   // button toggles the detail, a click elsewhere on the row does the same
   // (bigger target), and link-only rows open their source.
@@ -320,12 +327,19 @@ function updateNavActive() {
 
 // Open a section. Sub-category is category-specific, so it resets; navigating
 // anywhere also leaves search mode.
+// Collapse the mobile nav panel (no-op on desktop, where it isn't a panel).
+function closeMenu() {
+  $(".topnav").classList.remove("is-open");
+  $("#menu-btn").setAttribute("aria-expanded", "false");
+}
+
 function setType(type) {
   state.view = "section";
   state.type = type;
   state.subtype = "all";
   state.sort = null; // each section starts at its sensible default sort
   clearSearch();
+  closeMenu();
   render();
   writeURL();
   window.scrollTo(0, 0);
@@ -335,6 +349,7 @@ function setType(type) {
 function setHome() {
   state.view = "home";
   clearSearch();
+  closeMenu();
   render();
   writeURL();
   window.scrollTo(0, 0);

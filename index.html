@@ -15,7 +15,7 @@
     rel="stylesheet"
   />
   <!-- ?v= busts stale browser/Pages caches — bump when shipping big changes. -->
-  <link rel="stylesheet" href="css/styles.css?v=18" />
+  <link rel="stylesheet" href="css/styles.css?v=19" />
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -56,6 +56,10 @@
        section it also carries Home + the section links (built by app.js). -->
   <nav class="topnav" aria-label="Sections">
     <div class="topnav__in">
+      <button type="button" class="topnav__menu-btn" id="menu-btn" aria-expanded="false" aria-controls="topnav">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        Menu
+      </button>
       <div id="topnav" class="topnav__links"></div>
       <div class="topnav__search">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
@@ -97,6 +101,6 @@
   </main>
 
   <script src="js/csv.js?v=2"></script>
-  <script src="js/app.js?v=21"></script>
+  <script src="js/app.js?v=22"></script>
 </body>
 </html>
