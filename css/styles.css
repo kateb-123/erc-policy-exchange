@@ -889,11 +889,12 @@ main {
      live on the desktop header and inside the site itself). */
   .site-header__inner {
     padding: 16px 24px 14px;
-    gap: 14px;
-    flex-wrap: nowrap;
+    gap: 10px 14px;
   }
+  /* Title keeps one line (it gets the full row; the logo wraps beneath). */
   .site-header__title {
     font-size: 23px;
+    white-space: nowrap;
   }
   .site-header__logo {
     height: 32px;
