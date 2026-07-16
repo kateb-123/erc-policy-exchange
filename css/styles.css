@@ -885,13 +885,18 @@ main {
 }
 /* ---------- Responsive ---------- */
 @media (max-width: 780px) {
-  /* Masthead slims down: smaller title + logo, contact links hidden (they
-     live on the desktop header and inside the site itself). */
+  /* Masthead reorders (Kate 2026-07-16): brand row FIRST — logo with the
+     email/website links beside it — then the title on its own line below. */
   .site-header__inner {
-    padding: 16px 24px 14px;
+    padding: 14px 24px 14px;
     gap: 10px 14px;
+    flex-direction: column;
+    align-items: flex-start;
   }
-  /* Title keeps one line (it gets the full row; the logo wraps beneath). */
+  .site-header__brand {
+    order: -1;
+    gap: 14px;
+  }
   .site-header__title {
     font-size: 23px;
     white-space: nowrap;
@@ -900,7 +905,10 @@ main {
     height: 32px;
   }
   .site-header__contact {
-    display: none;
+    gap: 4px;
+  }
+  .site-header__contact-link {
+    font-size: 0.78rem;
   }
 
   /* Nav strip becomes hamburger + search on one row; the links live in a
