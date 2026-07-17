@@ -767,13 +767,18 @@ main {
   font-variant-numeric: tabular-nums;
 }
 /* Right column: deadline beside the caret, top-aligned with the title. */
+/* Right column: FIXED width so the title/date boundary is identical on every
+   tab (Kate's hard rule — columns must never jump between tabs). Content is
+   right-aligned; --due-drop pushes it down past the eyebrow pill so the date
+   lines up with the TITLE, not the pill. */
 .feed-cell--due {
-  flex: 0 0 auto;
+  flex: 0 0 var(--due-col, 152px);
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 8px;
   white-space: nowrap;
-  padding-top: 2px;
+  margin-top: var(--due-drop, 36px);
 }
 /* Title links straight to the source (primary action). */
 .feed-item .feed-title-link {
@@ -1067,8 +1072,12 @@ main {
   .feed-item__body {
     flex: 1 1 100%;
   }
+  /* Stacked: the due line sits below the text full-width, so drop the fixed
+     column width, the right-drop, and left-align it. */
   .feed-cell--due {
-    padding-top: 0;
+    flex: 1 1 100%;
+    justify-content: flex-start;
+    margin-top: 0;
   }
 
   /* Landing cards: 4-across becomes 2-across. */
