@@ -790,13 +790,11 @@ function renderFeedCards(results, colorFor) {
         </li>`;
     })
     .join("");
-  const head = CARD_HEADERS[state.type] || { left: "Item", right: "Date" };
+  // No column-header bar: the section title + the per-row category pills carry
+  // the context, and each date labels itself ("Due …"). Keeps one maroon band
+  // (the masthead) instead of two competing ones.
   return `
     <div class="feed feed--opp">
-      <div class="feed__head">
-        <span class="feed__head-l">${esc(head.left)}</span>
-        <span class="feed__head-r">${esc(head.right)}</span>
-      </div>
       <ul class="feed__list" role="list">${cards}</ul>
     </div>`;
 }
@@ -864,10 +862,12 @@ function renderSearch() {
     })
     .join("");
 
+  // Search has no section title, so it keeps a header — but light, not the
+  // maroon bar, so no second maroon band competes with the masthead.
   list.innerHTML = `
     <div class="feed feed--opp">
-      <div class="feed__head">
-        <span class="feed__head-l">Search Results</span>
+      <div class="feed__head feed__head--light">
+        <span class="feed__head-l">Search results</span>
         <span class="feed__head-r"></span>
       </div>
       <ul class="feed__list" role="list">${rows}</ul>

@@ -641,29 +641,24 @@ main {
   border-radius: 8px;
   background: var(--card);
   box-shadow: var(--shadow);
-  /* No overflow:hidden here — it would disable the sticky header. Corners are
-     rounded on the header and last row instead. */
+  overflow: hidden; /* clips rows to the rounded frame (no sticky header now) */
 }
+/* Header bar — only the global-search view still uses one, in the light
+   variant below. Section feeds dropped it (title + pills carry the context). */
 .feed__head {
-  position: sticky;
-  top: var(--toolbar-h, 0px); /* docks beneath the sticky filter toolbar */
-  z-index: 2;
   display: flex;
   justify-content: space-between;
-  background: var(--maroon);
-  color: #fff;
   font-family: var(--head);
   font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.07em;
   padding: 11px 18px;
-  border-radius: 8px 8px 0 0;
 }
-/* Round the last row so the (now un-clipped) container keeps its soft corners. */
-.feed-item:last-child,
-.feed-item:last-child .feed-item__detail {
-  border-radius: 0 0 8px 8px;
+.feed__head--light {
+  background: var(--panel);
+  color: var(--faint);
+  border-bottom: 1px solid var(--line);
 }
 .feed__head-r {
   text-align: right;
