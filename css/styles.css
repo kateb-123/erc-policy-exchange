@@ -776,15 +776,15 @@ main {
   /* Indented under the tan row — the abstract reads as nested content. */
   padding: 14px 18px 18px 42px;
 }
-/* Events: facts panel beside the summary (two columns on wider screens). */
+/* Facts panel beside the summary (two columns on wider screens) — Events
+   (Date/Time/Location/Register) and Opportunities (Deadline/Topic/Apply). */
 .feed-item__detail--cols {
   display: grid;
   grid-template-columns: minmax(160px, 220px) 1fr;
   gap: 26px;
   align-items: start;
 }
-/* Standardized event facts (Date / Time / Location / Register). */
-.event-facts {
+.feed-facts {
   margin: 0;
   display: grid;
   gap: 12px;
@@ -793,11 +793,11 @@ main {
   border: 1px solid var(--line-soft);
   border-radius: 10px;
 }
-.event-fact {
+.feed-fact {
   display: grid;
   gap: 1px;
 }
-.event-fact__label {
+.feed-fact__label {
   font-family: var(--head);
   font-size: 0.68rem;
   font-weight: 700;
@@ -805,7 +805,7 @@ main {
   letter-spacing: 0.07em;
   color: var(--faint);
 }
-.event-fact__value {
+.feed-fact__value {
   margin: 0;
   font-size: 0.9rem;
   color: var(--body);
