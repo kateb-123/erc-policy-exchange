@@ -29,7 +29,7 @@ const NEWS_TABS = [
     label: "Opportunities",
     nav: "Opportunities",
     icon: "megaphone.svg",
-    desc: "Fellowships, grants, and calls for proposals from across education research — deadlines at a glance.",
+    desc: "Fellowships, grants, and calls for proposals relevant to education researchers.",
   },
   {
     value: "event",
@@ -37,7 +37,7 @@ const NEWS_TABS = [
     lines: ["Upcoming", "Events"],
     nav: "Events",
     icon: "webinar.svg",
-    desc: "Webinars, talks, and convenings worth your calendar — from the ERC and beyond.",
+    desc: "Events, lectures, webinars, and conferences, both on and off campus.",
   },
   {
     value: "research",
@@ -45,7 +45,7 @@ const NEWS_TABS = [
     lines: ["New Education", "Policy Research"],
     nav: "Research",
     icon: "working-paper.svg",
-    desc: "New working papers, peer-reviewed studies, reports, and ERC research briefs.",
+    desc: "New working papers, peer-reviewed studies, and reports.",
   },
   {
     value: "headline",
