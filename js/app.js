@@ -25,11 +25,12 @@ const NEWS_CSV = "data/news.csv";
 // shown on the landing card via CSS mask — swap the file name to change it.
 const NEWS_TABS = [
   {
-    value: "opportunity",
-    label: "Opportunities",
-    nav: "Opportunities",
-    icon: "megaphone.svg",
-    desc: "Fellowships, grants, and calls for proposals relevant to education researchers.",
+    value: "research",
+    label: "New Education Policy Research",
+    lines: ["New Education", "Policy Research"],
+    nav: "Research",
+    icon: "working-paper.svg",
+    desc: "New working papers, peer-reviewed studies, and reports.",
   },
   {
     value: "event",
@@ -40,12 +41,11 @@ const NEWS_TABS = [
     desc: "Events, lectures, webinars, and conferences, both on and off campus.",
   },
   {
-    value: "research",
-    label: "New Education Policy Research",
-    lines: ["New Education", "Policy Research"],
-    nav: "Research",
-    icon: "working-paper.svg",
-    desc: "New working papers, peer-reviewed studies, and reports.",
+    value: "opportunity",
+    label: "Opportunities",
+    nav: "Opportunities",
+    icon: "megaphone.svg",
+    desc: "Fellowships, grants, and calls for proposals relevant to education researchers.",
   },
   {
     value: "headline",
