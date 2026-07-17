@@ -21,14 +21,13 @@ const NEWS_CSV = "data/news.csv";
 // categories are distinct enough that a mixed "All" view isn't useful).
 // These mirror the ERC newsletter's timely sections.
 // label = full name (feed/section header); nav = short top-nav label;
-// card = landing-card label. icon = a file in assets/icons/ (Kate's set),
+// icon = a file in assets/icons/ (Kate's set),
 // shown on the landing card via CSS mask — swap the file name to change it.
 const NEWS_TABS = [
   {
     value: "opportunity",
     label: "Opportunities",
     nav: "Opportunities",
-    card: "Opportunities",
     icon: "megaphone.svg",
     desc: "Fellowships, grants, and calls for proposals from across education research — deadlines at a glance.",
   },
@@ -36,7 +35,6 @@ const NEWS_TABS = [
     value: "event",
     label: "Upcoming Events",
     nav: "Events",
-    card: "Upcoming Events",
     icon: "webinar.svg",
     desc: "Webinars, talks, and convenings worth your calendar — from the ERC and beyond.",
   },
@@ -44,7 +42,6 @@ const NEWS_TABS = [
     value: "research",
     label: "New Education Policy Research",
     nav: "Research",
-    card: "Research",
     icon: "working-paper.svg",
     desc: "New working papers, peer-reviewed studies, reports, and ERC research briefs.",
   },
@@ -52,7 +49,6 @@ const NEWS_TABS = [
     value: "headline",
     label: "Education Headlines",
     nav: "Headlines",
-    card: "Education Headlines",
     icon: "us.svg",
     desc: "The education news we're following, from Texas and across the country.",
   },
@@ -300,7 +296,7 @@ function buildLanding() {
     (t) => `
     <button type="button" class="lcard" data-type="${t.value}">
       <span class="lcard__icon" aria-hidden="true"><span class="lcard__glyph" ${iconMask(t.icon)}></span></span>
-      <span class="lcard__title">${esc(t.card)}</span>
+      <span class="lcard__title">${esc(t.label)}</span>
     </button>`
   ).join("");
 
