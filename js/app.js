@@ -34,6 +34,7 @@ const NEWS_TABS = [
   {
     value: "event",
     label: "Upcoming Events",
+    lines: ["Upcoming", "Events"],
     nav: "Events",
     icon: "webinar.svg",
     desc: "Webinars, talks, and convenings worth your calendar — from the ERC and beyond.",
@@ -41,6 +42,7 @@ const NEWS_TABS = [
   {
     value: "research",
     label: "New Education Policy Research",
+    lines: ["New Education", "Policy Research"],
     nav: "Research",
     icon: "working-paper.svg",
     desc: "New working papers, peer-reviewed studies, reports, and ERC research briefs.",
@@ -48,6 +50,7 @@ const NEWS_TABS = [
   {
     value: "headline",
     label: "Education Headlines",
+    lines: ["Education", "Headlines"],
     nav: "Headlines",
     icon: "us.svg",
     desc: "The education news we're following, from Texas and across the country.",
@@ -296,7 +299,7 @@ function buildLanding() {
     (t) => `
     <button type="button" class="lcard" data-type="${t.value}">
       <span class="lcard__icon" aria-hidden="true"><span class="lcard__glyph" ${iconMask(t.icon)}></span></span>
-      <span class="lcard__title">${esc(t.label)}</span>
+      <span class="lcard__title">${(t.lines || [t.label]).map(esc).join("<br>")}</span>
     </button>`
   ).join("");
 
