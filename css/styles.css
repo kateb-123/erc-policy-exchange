@@ -803,7 +803,7 @@ main {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  color: var(--faint);
+  color: var(--maroon);
 }
 .feed-fact__value {
   margin: 0;
