@@ -475,7 +475,7 @@ main {
   background: #fff;
   border: 1px solid var(--line);
   border-radius: 999px; /* pill */
-  padding: 7px 16px;
+  padding: 5px 16px;
   cursor: pointer;
   white-space: nowrap;
 }
