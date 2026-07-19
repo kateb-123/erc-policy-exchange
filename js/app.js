@@ -21,7 +21,7 @@ const NEWS_CSV = "data/news.csv";
 // categories are distinct enough that a mixed "All" view isn't useful).
 // These mirror the ERC newsletter's timely sections.
 // label = full name (feed/section header); nav = short top-nav label;
-// icon = a file in assets/icons/ (Kate's set),
+// icon = a file under assets/ (Kate's dedicated home-icons set),
 // shown on the landing card via CSS mask — swap the file name to change it.
 const NEWS_TABS = [
   {
@@ -29,7 +29,7 @@ const NEWS_TABS = [
     label: "New Education Policy Research",
     lines: ["New Education", "Policy Research"],
     nav: "Research",
-    icon: "working-paper.svg",
+    icon: "home-icons/research.svg",
     desc: "New working papers, peer-reviewed studies, and reports.",
   },
   {
@@ -37,14 +37,14 @@ const NEWS_TABS = [
     label: "Upcoming Events",
     lines: ["Upcoming", "Events"],
     nav: "Events",
-    icon: "webinar.svg",
+    icon: "home-icons/events.svg",
     desc: "Events, lectures, webinars, and conferences, both on and off campus.",
   },
   {
     value: "opportunity",
     label: "Opportunities",
     nav: "Opportunities",
-    icon: "megaphone.svg",
+    icon: "home-icons/opportunities.svg",
     desc: "Fellowships, grants, and calls for proposals relevant to education researchers.",
   },
   {
@@ -52,7 +52,7 @@ const NEWS_TABS = [
     label: "Education Headlines",
     lines: ["Education", "Headlines"],
     nav: "Headlines",
-    icon: "us.svg",
+    icon: "home-icons/headlines.svg",
     desc: "The education news we're following, from Texas and across the country.",
   },
 ];
@@ -552,7 +552,7 @@ const DETAIL_LINK_LABEL = {
 // Shared helpers for the feed templates.
 const SEP = `<span class="feed-meta-sep" aria-hidden="true">·</span>`;
 const iconMask = (file) =>
-  `style="-webkit-mask-image:url('assets/icons/${file}');mask-image:url('assets/icons/${file}')"`;
+  `style="-webkit-mask-image:url('assets/${file}');mask-image:url('assets/${file}')"`;
 const titleLink = (link, headline) =>
   link
     ? `<a class="feed-title-link" href="${esc(link)}" target="_blank" rel="noopener noreferrer">${esc(headline)}</a>`
@@ -655,7 +655,7 @@ function renderFeedCards(results, colorFor) {
       const catClass = colorFor[subtype] || "tag--c0";
       const catIcon = CAT_ICONS[catText.trim().toLowerCase()] || "";
       const catHTML = `<div class="feed-item__cat"><span class="tag ${catClass}">${
-        catIcon ? `<span class="tag__icon" ${iconMask(catIcon)} aria-hidden="true"></span>` : ""
+        catIcon ? `<span class="tag__icon" ${iconMask("icons/" + catIcon)} aria-hidden="true"></span>` : ""
       }${esc(catText)}</span></div>`;
       const detailId = `feed-detail-${i}`;
       // Right column: Opportunities show the deadline; Events show the event date.

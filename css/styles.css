@@ -294,8 +294,8 @@ a:hover {
    pill icons. */
 .lcard__glyph {
   display: block;
-  width: 24px;
-  height: 24px;
+  width: 30px;
+  height: 30px;
 }
 .lcard__title {
   font-family: var(--head);
