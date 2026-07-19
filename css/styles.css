@@ -282,7 +282,7 @@ a:hover {
 .lcard__icon {
   width: 46px;
   height: 46px;
-  border-radius: 50%;
+  border-radius: 12px;
   background: var(--card);
   border: 1px solid var(--line-soft);
   color: var(--maroon);
