@@ -936,24 +936,19 @@ function renderBrief() {
   $("#opp-toolbar").hidden = true;
   syncToolbarHeight();
   $("#news-count").textContent = "";
-  const meta = [
-    (it.authors || "").trim() ? esc(it.authors) : "",
-    it.date ? formatDate(it.date) : "",
-  ]
-    .filter(Boolean)
-    .join(SEP);
+  // No repeated title/authors here — the brief's own cover page carries them.
   $("#news-list").innerHTML = `
     <div class="brief">
-      <button type="button" class="brief__back">← Back to Research</button>
-      <h2 class="brief__title">${esc(it.headline)}</h2>
-      ${meta ? `<p class="brief__meta">${meta}</p>` : ""}
+      <div class="brief__bar">
+        <button type="button" class="brief__back">← Back to Research</button>
+        <a class="brief__open" href="${esc(it.link)}" target="_blank" rel="noopener noreferrer">Open in Google Drive ↗</a>
+      </div>
       <iframe
         class="brief__frame"
         src="https://drive.google.com/file/d/${esc(state.brief)}/preview"
         title="${esc(it.headline)}"
         allow="autoplay"
         loading="lazy"></iframe>
-      <a class="feed-link" href="${esc(it.link)}" target="_blank" rel="noopener noreferrer">Open in Google Drive ↗</a>
     </div>`;
 }
 

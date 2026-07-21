@@ -838,6 +838,13 @@ main {
 
 /* ---------- Brief viewer ---------- */
 /* One ERC Research Brief, embedded in place via Drive's /preview iframe. */
+.brief__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
 .brief__back {
   appearance: none;
   border: 0;
@@ -848,32 +855,24 @@ main {
   font-size: 0.9rem;
   color: var(--maroon-700);
   padding: 0;
-  margin-bottom: 16px;
 }
 .brief__back:hover {
   text-decoration: underline;
 }
-.brief__title {
+.brief__open {
   font-family: var(--head);
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--maroon);
-  letter-spacing: -0.01em;
-  margin: 0 0 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--faint);
 }
-.brief__meta {
-  color: var(--muted);
-  font-size: 0.92rem;
-  margin: 0 0 18px;
-}
+/* The frame is bare — Drive's player brings its own chrome, so any border or
+   panel of ours just adds a frame around a frame. */
 .brief__frame {
   display: block;
   width: 100%;
-  height: min(78vh, 980px);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--panel);
-  margin-bottom: 14px;
+  height: min(85vh, 1100px);
+  border: 0;
+  border-radius: 8px;
 }
 
 /* ---------- Type tags ---------- */
