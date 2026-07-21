@@ -836,6 +836,46 @@ main {
   }
 }
 
+/* ---------- Brief viewer ---------- */
+/* One ERC Research Brief, embedded in place via Drive's /preview iframe. */
+.brief__back {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--head);
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--maroon-700);
+  padding: 0;
+  margin-bottom: 16px;
+}
+.brief__back:hover {
+  text-decoration: underline;
+}
+.brief__title {
+  font-family: var(--head);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--maroon);
+  letter-spacing: -0.01em;
+  margin: 0 0 6px;
+}
+.brief__meta {
+  color: var(--muted);
+  font-size: 0.92rem;
+  margin: 0 0 18px;
+}
+.brief__frame {
+  display: block;
+  width: 100%;
+  height: min(78vh, 980px);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  margin-bottom: 14px;
+}
+
 /* ---------- Type tags ---------- */
 .tag {
   display: inline-block;

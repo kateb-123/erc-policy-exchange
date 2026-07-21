@@ -152,6 +152,12 @@ function readURL() {
     state.view = "home";
   }
   if (state.q) state.view = "search";
+  const brief = (p.get("brief") || "").trim();
+  if (brief) {
+    state.view = "brief";
+    state.brief = brief;
+    state.type = "research"; // briefs belong to the Research section
+  }
   state.subtype = p.get("subtype") || "all";
 }
 
@@ -160,6 +166,8 @@ function writeURL() {
   // Search carries ?q=; a section carries ?type=; home is a clean URL.
   if (state.view === "search") {
     p.set("q", state.q.trim());
+  } else if (state.view === "brief") {
+    p.set("brief", state.brief);
   } else if (state.view === "section") {
     p.set("type", state.type);
     if (state.subtype !== "all") p.set("subtype", state.subtype);
@@ -248,6 +256,16 @@ function init(rows) {
   // button toggles the detail, a click elsewhere on the row does the same
   // (bigger target), and link-only rows open their source.
   $("#news-list").addEventListener("click", (e) => {
+    const briefLink = e.target.closest("a[data-brief]");
+    if (briefLink) {
+      e.preventDefault();
+      openBrief(briefLink.dataset.brief);
+      return;
+    }
+    if (e.target.closest(".brief__back")) {
+      setType("research");
+      return;
+    }
     const caretBtn = e.target.closest(".feed-expand");
     if (caretBtn) {
       toggleDetail(caretBtn);
@@ -558,6 +576,27 @@ const titleLink = (link, headline) =>
     ? `<a class="feed-title-link" href="${esc(link)}" target="_blank" rel="noopener noreferrer">${esc(headline)}</a>`
     : `<span class="feed-title-link">${esc(headline)}</span>`;
 
+// ERC Research Briefs live on Google Drive; instead of bouncing readers out,
+// they open in an in-app viewer (?brief=<drive file id>) that iframes Drive's
+// embeddable /preview player.
+const driveId = (link) => {
+  const m = (link || "").match(/drive\.google\.com\/file\/d\/([\w-]+)/);
+  return m ? m[1] : null;
+};
+const briefId = (it) =>
+  (it.subtype || "").trim().toLowerCase() === "erc research brief"
+    ? driveId(it.link)
+    : null;
+// Title link for a feed row: briefs route to the internal viewer (the
+// delegated #news-list listener intercepts data-brief clicks — no reload);
+// everything else opens the source in a new tab.
+const itemTitleLink = (it) => {
+  const id = briefId(it);
+  return id
+    ? `<a class="feed-title-link" href="?brief=${id}" data-brief="${id}">${esc(it.headline)}</a>`
+    : titleLink((it.link || "").trim(), it.headline);
+};
+
 // Column labels for the card table's frozen header, per tab.
 // `expand: false` = rows don't expand in place; the row is a straight link to
 // the source (Headlines: the blurb is just a teaser, the article is the point).
@@ -670,7 +709,7 @@ function renderFeedCards(results, colorFor) {
       const deadlineHTML = rv.label
         ? `<span class="feed-deadline${soon}">${esc(rv.label)}</span>`
         : "";
-      const titleHTML = titleLink(link, it.headline);
+      const titleHTML = itemTitleLink(it);
       const linkHTML = link
         ? `<a class="feed-link" href="${esc(link)}" target="_blank" rel="noopener noreferrer">${DETAIL_LINK_LABEL[state.type] || "Read more"} ↗</a>`
         : "";
@@ -845,7 +884,7 @@ function renderSearch() {
     .map((it) => {
       const link = (it.link || "").trim();
       const source = (it.source || "").trim();
-      const titleHTML = titleLink(link, it.headline);
+      const titleHTML = itemTitleLink(it);
       const meta = [
         `<span class="feed-cat">${esc(sectionLabel[(it.type || "").toLowerCase()] || it.type)}</span>`,
         source ? `<span class="feed-source">${esc(source)}</span>` : "",
@@ -880,6 +919,55 @@ function renderSearch() {
     </div>`;
 }
 
+// In-app viewer for an ERC Research Brief: title + authors up top, the PDF in
+// Drive's embeddable /preview iframe, with an escape hatch out to Drive.
+function renderBrief() {
+  const it = state.items.find((x) => briefId(x) === state.brief);
+  if (!it) {
+    // Unknown/removed id (stale bookmark): fall back to the Research feed.
+    state.view = "section";
+    state.type = "research";
+    writeURL();
+    render();
+    return;
+  }
+  const head = $("#section-head");
+  if (head) head.hidden = true;
+  $("#opp-toolbar").hidden = true;
+  syncToolbarHeight();
+  $("#news-count").textContent = "";
+  const meta = [
+    (it.authors || "").trim() ? esc(it.authors) : "",
+    it.date ? formatDate(it.date) : "",
+  ]
+    .filter(Boolean)
+    .join(SEP);
+  $("#news-list").innerHTML = `
+    <div class="brief">
+      <button type="button" class="brief__back">← Back to Research</button>
+      <h2 class="brief__title">${esc(it.headline)}</h2>
+      ${meta ? `<p class="brief__meta">${meta}</p>` : ""}
+      <iframe
+        class="brief__frame"
+        src="https://drive.google.com/file/d/${esc(state.brief)}/preview"
+        title="${esc(it.headline)}"
+        allow="autoplay"
+        loading="lazy"></iframe>
+      <a class="feed-link" href="${esc(it.link)}" target="_blank" rel="noopener noreferrer">Open in Google Drive ↗</a>
+    </div>`;
+}
+
+function openBrief(id) {
+  state.view = "brief";
+  state.brief = id;
+  state.type = "research";
+  clearSearch();
+  closeMenu();
+  render();
+  writeURL();
+  window.scrollTo(0, 0);
+}
+
 function render() {
   updateNavActive();
 
@@ -898,6 +986,12 @@ function render() {
   // Global search view: results across every section, no per-tab toolbar.
   if (state.view === "search") {
     renderSearch();
+    return;
+  }
+
+  // Brief viewer: one ERC Research Brief, embedded in place.
+  if (state.view === "brief") {
+    renderBrief();
     return;
   }
 
