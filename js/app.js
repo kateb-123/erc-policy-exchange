@@ -1002,9 +1002,7 @@ function render() {
 
   const list = $("#news-list");
   const results = filter();
-  $("#news-count").innerHTML = `<strong>${results.length}</strong> ${
-    results.length === 1 ? "update" : "updates"
-  }`;
+  $("#news-count").textContent = ""; // count shows only on search results
 
   renderToolbar();
 
