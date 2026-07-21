@@ -264,7 +264,7 @@ function init(rows) {
     const briefLink = e.target.closest("a[data-brief]");
     if (briefLink) {
       e.preventDefault();
-      openBrief(briefLink.dataset.brief);
+      openBrief(briefLink.dataset.brief, briefLink.dataset.briefTitle);
       return;
     }
     if (e.target.closest(".brief__back")) {
@@ -736,6 +736,20 @@ function renderFeedCards(results, colorFor) {
         : "";
       const titleHTML = itemTitleLink(it);
       const linkHTML = itemDetailLink(it);
+      // Optional second action: a "View infographic" button when the CSV's
+      // `infographic` cell holds a link. A Drive link opens in the in-app
+      // viewer (like the brief); any other link opens in a new tab.
+      const infographic = (it.infographic || "").trim();
+      const igId = driveId(infographic);
+      const infographicHTML = infographic
+        ? igId
+          ? `<a class="feed-link" href="?brief=${igId}" data-brief="${igId}" data-brief-title="${esc(it.headline)} infographic">View infographic ↗</a>`
+          : `<a class="feed-link" href="${esc(infographic)}" target="_blank" rel="noopener noreferrer">View infographic ↗</a>`
+        : "";
+      const actionsHTML =
+        linkHTML || infographicHTML
+          ? `<div class="feed-actions">${linkHTML}${infographicHTML}</div>`
+          : "";
       // Events and Opportunities lead their expanded detail with a standardized
       // facts panel beside the summary (two columns). Each fact renders only
       // when its CSV cell is filled, so sparse rows degrade gracefully.
@@ -813,7 +827,7 @@ function renderFeedCards(results, colorFor) {
             <div class="feed-item__detail" id="${detailId}" hidden>
               <h3 class="feed-detail__label">Abstract</h3>
               <p class="feed-detail__blurb">${esc(it.blurb)}</p>
-              ${linkHTML}
+              ${actionsHTML}
             </div>
           </li>`;
       }
@@ -852,7 +866,7 @@ function renderFeedCards(results, colorFor) {
             ${factsHTML}
             <div class="feed-detail__main">
               <p class="feed-detail__blurb">${esc(it.blurb)}</p>
-              ${factsHTML ? "" : linkHTML}
+              ${factsHTML ? "" : actionsHTML}
             </div>
           </div>
         </li>`;
@@ -946,38 +960,34 @@ function renderSearch() {
 // Drive's embeddable /preview iframe, with an escape hatch out to Drive.
 function renderBrief() {
   const it = state.items.find((x) => briefId(x) === state.brief);
-  if (!it) {
-    // Unknown/removed id (stale bookmark): fall back to the Research feed.
-    state.view = "section";
-    state.type = "research";
-    writeURL();
-    render();
-    return;
-  }
+  // Title: the matching brief row when there is one; otherwise whatever the
+  // opener passed (an infographic isn't its own row) or a generic fallback.
+  const label = it ? it.headline : state.briefTitle || "ERC Research";
+  const driveView = `https://drive.google.com/file/d/${esc(state.brief)}/view`;
   const head = $("#section-head");
   if (head) head.hidden = true;
   $("#opp-toolbar").hidden = true;
   syncToolbarHeight();
   $("#news-count").textContent = "";
-  // No repeated title/authors here — the brief's own cover page carries them.
   $("#news-list").innerHTML = `
     <div class="brief">
       <div class="brief__bar">
         <button type="button" class="brief__back">← Back to Research</button>
-        <a class="brief__open" href="${esc(it.link)}" target="_blank" rel="noopener noreferrer">Open in Google Drive ↗</a>
+        <a class="brief__open" href="${driveView}" target="_blank" rel="noopener noreferrer">Open in Google Drive ↗</a>
       </div>
       <iframe
         class="brief__frame"
         src="https://drive.google.com/file/d/${esc(state.brief)}/preview"
-        title="${esc(it.headline)}"
+        title="${esc(label)}"
         allow="autoplay"
         loading="lazy"></iframe>
     </div>`;
 }
 
-function openBrief(id) {
+function openBrief(id, title) {
   state.view = "brief";
   state.brief = id;
+  state.briefTitle = title || "";
   state.type = "research";
   clearSearch();
   closeMenu();

@@ -1,5 +1,5 @@
-date,headline,link,type,subtype,source,topic,blurb,deadline,medium,authors,time,location
-2026-01-15,EXAMPLE research row (delete me),https://example.com/paper,research,Working Paper,EdWorkingPapers,Teacher retention,One-paragraph summary of the paper. No dates or logistics here.,,,"Jane Smith, John Doe",,
-2026-01-20,EXAMPLE event row (delete me),https://example.com/register,event,Online,Hunt Institute,,What the event covers and who it is for. Date/time/location go in their own columns.,,,,2:00-3:00 PM CT,Webinar
-2026-01-10,EXAMPLE opportunity row (delete me),https://example.com/apply,opportunity,Funding & Grants,Spencer Foundation,School finance,What the grant supports. The deadline goes in the deadline column.,2026-03-01,,,,
-2026-01-18,EXAMPLE headline row (delete me),https://example.com/article,headline,Texas,The Texas Tribune,,One-line teaser of the article.,,newspaper,,,
+date,headline,link,type,subtype,source,topic,blurb,deadline,medium,authors,time,location,infographic
+2026-01-15,EXAMPLE research row (delete me),https://example.com/paper,research,Working Paper,EdWorkingPapers,Teacher retention,One-paragraph summary of the paper. No dates or logistics here.,,,"Jane Smith, John Doe",,,
+2026-01-20,EXAMPLE event row (delete me),https://example.com/register,event,Online,Hunt Institute,,What the event covers and who it is for. Date/time/location go in their own columns.,,,,2:00-3:00 PM CT,Webinar,
+2026-01-10,EXAMPLE opportunity row (delete me),https://example.com/apply,opportunity,Funding & Grants,Spencer Foundation,School finance,What the grant supports. The deadline goes in the deadline column.,2026-03-01,,,,,
+2026-01-18,EXAMPLE headline row (delete me),https://example.com/article,headline,Texas,The Texas Tribune,,One-line teaser of the article.,,newspaper,,,,
