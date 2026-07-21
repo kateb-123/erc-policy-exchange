@@ -397,14 +397,14 @@ function distinct(field, items = state.items) {
 // here sink to the end alphabetically.
 const SUBTYPE_ORDER = {
   event: ["erc events", "texas a&m", "online", "webinar", "off-campus"],
-  research: ["erc research brief", "working paper", "peer-reviewed", "report"],
+  research: ["erc research", "working paper", "peer-reviewed", "report"],
   headline: ["texas", "national"],
   opportunity: ["call for proposals", "fellowships & programs", "funding & grants"],
 };
 
 // ERC's own + Texas subtypes always wear the solid-border Aggie-maroon pill
 // (Kate's rule); everything else cycles the 5-colour palette.
-const MAROON_SUBS = new Set(["erc events", "erc research brief", "texas"]);
+const MAROON_SUBS = new Set(["erc events", "erc research", "texas"]);
 function sortSubtypes(subs, type) {
   const order = SUBTYPE_ORDER[(type || "").toLowerCase()] || [];
   const rank = (s) => {
@@ -551,7 +551,7 @@ const CAT_ICONS = {
   online: "webinar.svg",
   webinar: "webinar.svg",
   // Research
-  "erc research brief": "star.svg",
+  "erc research": "star.svg",
   "peer-reviewed": "peer-reviewed.svg",
   report: "reports.svg",
   "working paper": "working-paper.svg",
@@ -584,7 +584,7 @@ const driveId = (link) => {
   return m ? m[1] : null;
 };
 const briefId = (it) =>
-  (it.subtype || "").trim().toLowerCase() === "erc research brief"
+  (it.subtype || "").trim().toLowerCase() === "erc research"
     ? driveId(it.link)
     : null;
 // Title link for a feed row: briefs route to the internal viewer (the
