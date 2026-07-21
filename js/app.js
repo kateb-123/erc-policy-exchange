@@ -92,10 +92,15 @@ function esc(str) {
     .replace(/"/g, "&quot;");
 }
 
-// Format an ISO date (YYYY-MM-DD) as e.g. "Jun 30, 2026".
+// Format an ISO date (YYYY-MM-DD) as e.g. "Jun 30, 2026". Partial dates from
+// the sheet degrade gracefully: "2026-07" -> "Jul 2026", "2026" -> "2026".
 function formatDate(iso) {
   if (!iso) return "";
   const parts = iso.split("-");
+  if (parts.length === 2) {
+    const d = new Date(Number(parts[0]), Number(parts[1]) - 1, 1);
+    return isNaN(d) ? iso : d.toLocaleDateString("en-US", { year: "numeric", month: "short" });
+  }
   if (parts.length !== 3) return iso;
   const [y, m, d] = parts.map(Number);
   const date = new Date(y, m - 1, d); // local time; avoids TZ off-by-one
@@ -509,6 +514,14 @@ const TOOLBAR_SORTS = {
 // ("K-12 Dive · [icon] Article") when the CSV's `medium` column is filled.
 // Blank medium = source only, so the column stays optional row by row.
 const MEDIA = {
+  online: {
+    label: "Online",
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0 0c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3 7.5 7.03 7.5 12s2.015 9 4.5 9Zm-8.716-6h17.432M3.284 9h17.432"/></svg>',
+  },
+  magazine: {
+    label: "Magazine",
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg>',
+  },
   newspaper: {
     label: "Article",
     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 0 1-2.25 2.25M16.5 7.5V18a2.25 2.25 0 0 0 2.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 0 0 2.25 2.25h13.5M6 7.5h3v3H6v-3Z"/></svg>',
