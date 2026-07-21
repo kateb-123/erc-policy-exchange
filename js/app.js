@@ -609,6 +609,18 @@ const itemTitleLink = (it) => {
     ? `<a class="feed-title-link" href="?brief=${id}" data-brief="${id}">${esc(it.headline)}</a>`
     : titleLink((it.link || "").trim(), it.headline);
 };
+// The expanded "Read the full …" link mirrors the title: a brief opens the
+// in-app viewer (intercepted by the delegated listener), everything else
+// opens its source in a new tab.
+const itemDetailLink = (it) => {
+  const id = briefId(it);
+  if (id)
+    return `<a class="feed-link" href="?brief=${id}" data-brief="${id}">Read the full brief ↗</a>`;
+  const link = (it.link || "").trim();
+  return link
+    ? `<a class="feed-link" href="${esc(link)}" target="_blank" rel="noopener noreferrer">${DETAIL_LINK_LABEL[state.type] || "Read more"} ↗</a>`
+    : "";
+};
 
 // Column labels for the card table's frozen header, per tab.
 // `expand: false` = rows don't expand in place; the row is a straight link to
@@ -723,9 +735,7 @@ function renderFeedCards(results, colorFor) {
         ? `<span class="feed-deadline${soon}">${esc(rv.label)}</span>`
         : "";
       const titleHTML = itemTitleLink(it);
-      const linkHTML = link
-        ? `<a class="feed-link" href="${esc(link)}" target="_blank" rel="noopener noreferrer">${DETAIL_LINK_LABEL[state.type] || "Read more"} ↗</a>`
-        : "";
+      const linkHTML = itemDetailLink(it);
       // Events and Opportunities lead their expanded detail with a standardized
       // facts panel beside the summary (two columns). Each fact renders only
       // when its CSV cell is filled, so sparse rows degrade gracefully.
