@@ -67,12 +67,31 @@ const TODAY = new Date().toISOString().slice(0, 10);
 const isPastEvent = (it) =>
   (it.type || "").toLowerCase() === "event" && (it.date || "") < TODAY;
 
+// News older than this (60 days back) has aged out. Headlines phase out of the
+// site entirely (they're time-sensitive); Research instead moves to the
+// Archive view on its tab, so nothing scholarly is ever lost. An undated
+// headline can't prove it's fresh, so it ages out too.
+const CUTOFF = (() => {
+  const d = new Date();
+  d.setDate(d.getDate() - 60);
+  return d.toISOString().slice(0, 10);
+})();
+const isStaleHeadline = (it) =>
+  (it.type || "").toLowerCase() === "headline" && (it.date || "") < CUTOFF;
+const isArchivedResearch = (it) =>
+  (it.type || "").toLowerCase() === "research" && (it.date || "") < CUTOFF;
+
+// Feeds reveal this many rows at a time ("Show more" pages in the rest).
+const PAGE_SIZE = 15;
+
 // Single source of truth for what's shown.
 const state = {
   items: [],
   view: "home", // "home" (landing page) | "section" (a category feed)
   type: NEWS_TABS[0].value, // active category (when view === "section")
   subtype: "all", // sub-category filter (scoped to the active category)
+  archive: false, // Research only: show the 60-day+ archive instead of fresh
+  shown: PAGE_SIZE, // rows revealed so far in the current list
   q: "",
   sort: null, // {key,dir} once a sort action is chosen; null = per-tab default
   searchFrom: null, // where to return when the global search box is cleared
@@ -138,8 +157,10 @@ const isPastDeadline = (it) => {
   return d.firm && d.iso < TODAY;
 };
 
-// A dated item that has aged out of the feed (past event OR past deadline).
-const isExpired = (it) => isPastEvent(it) || isPastDeadline(it);
+// A dated item that has aged out of the feed entirely (past event, past
+// deadline, or a headline past the 60-day window). Archived research is NOT
+// expired — it stays searchable and lives in the Research tab's Archive view.
+const isExpired = (it) => isPastEvent(it) || isPastDeadline(it) || isStaleHeadline(it);
 
 /* ------------------------------------------------------------
  * URL <-> state
@@ -164,6 +185,7 @@ function readURL() {
     state.type = "research"; // briefs belong to the Research section
   }
   state.subtype = p.get("subtype") || "all";
+  state.archive = p.get("archive") === "1";
 }
 
 function writeURL() {
@@ -176,6 +198,7 @@ function writeURL() {
   } else if (state.view === "section") {
     p.set("type", state.type);
     if (state.subtype !== "all") p.set("subtype", state.subtype);
+    if (state.type === "research" && state.archive) p.set("archive", "1");
   }
   const qs = p.toString();
   const url = qs ? `${window.location.pathname}?${qs}` : window.location.pathname;
@@ -185,16 +208,23 @@ function writeURL() {
 /* ------------------------------------------------------------
  * Init
  * ------------------------------------------------------------ */
-function init(rows) {
+function init(rows, modified) {
   state.items = rows;
 
-  // Freshness cue: the most recent item date that isn't in the future (so an
-  // upcoming event's date doesn't read as a future "last updated").
-  const latest = state.items
-    .map((it) => it.date)
-    .filter((d) => d && d <= TODAY)
-    .reduce((m, d) => (d > m ? d : m), "");
-  $("#news-updated").textContent = latest ? `Updated ${formatDate(latest)}` : "";
+  // Freshness cue: when the CSV itself was last touched (the server's
+  // Last-Modified — on GitHub Pages that's the last deploy that changed it).
+  // Fallback: the most recent item date that isn't in the future.
+  const mod = modified ? new Date(modified) : null;
+  const stamp =
+    mod && !isNaN(mod)
+      ? mod.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
+      : formatDate(
+          state.items
+            .map((it) => it.date)
+            .filter((d) => d && d <= TODAY)
+            .reduce((m, d) => (d > m ? d : m), "")
+        );
+  $("#news-updated").textContent = stamp ? `Updated ${stamp}` : "";
 
   buildNav();
   buildLanding();
@@ -206,6 +236,7 @@ function init(rows) {
   gs.value = state.q;
   gs.addEventListener("input", (e) => {
     const q = e.target.value;
+    state.shown = PAGE_SIZE; // a new query starts at the first page
     if (q.trim()) {
       if (state.view !== "search") {
         state.searchFrom = { view: state.view, type: state.type };
@@ -228,21 +259,31 @@ function init(rows) {
   // toolbar is rebuilt by render(), so afterwards we restore focus to the
   // equivalent new button (keyboard users would otherwise be dropped).
   $("#opp-toolbar").addEventListener("click", (e) => {
-    const btn = e.target.closest("[data-sortkey], [data-subtype]");
+    const btn = e.target.closest("[data-sortkey], [data-subtype], [data-archive]");
     if (!btn) return;
+    state.shown = PAGE_SIZE; // any toolbar change starts the list over
     if (btn.dataset.sortkey) {
       state.sort = { key: btn.dataset.sortkey, dir: btn.dataset.sortdir };
+    } else if (btn.dataset.archive != null) {
+      // Archive is a view switch, so the sub-category filter starts fresh
+      // (fresh and archived research can have different sub-category mixes).
+      state.archive = !state.archive;
+      state.subtype = "all";
     } else if (btn.dataset.subtype != null) {
       // Clicking the active category pill again deselects it (same as Clear).
       state.subtype =
         btn.dataset.subtype === state.subtype ? "all" : btn.dataset.subtype;
+      // Clear also backs out of the Archive view.
+      if (btn.dataset.subtype === "all") state.archive = false;
     }
     render();
     writeURL();
     const again = $("#opp-toolbar").querySelector(
       btn.dataset.sortkey
         ? `[data-sortkey="${btn.dataset.sortkey}"][data-sortdir="${btn.dataset.sortdir}"]`
-        : `[data-subtype="${CSS.escape(btn.dataset.subtype)}"]`
+        : btn.dataset.archive != null
+          ? "[data-archive]"
+          : `[data-subtype="${CSS.escape(btn.dataset.subtype)}"]`
     );
     if (again && !again.disabled) again.focus();
   });
@@ -261,6 +302,15 @@ function init(rows) {
   // button toggles the detail, a click elsewhere on the row does the same
   // (bigger target), and link-only rows open their source.
   $("#news-list").addEventListener("click", (e) => {
+    // "Show more": reveal the next page in place (works in sections + search).
+    const moreBtn = e.target.closest("[data-more]");
+    if (moreBtn) {
+      state.shown += PAGE_SIZE;
+      render();
+      const again = $("#news-list").querySelector("[data-more]");
+      if (again) again.focus();
+      return;
+    }
     const briefLink = e.target.closest("a[data-brief]");
     if (briefLink) {
       e.preventDefault();
@@ -359,6 +409,8 @@ function setType(type) {
   state.view = "section";
   state.type = type;
   state.subtype = "all";
+  state.archive = false;
+  state.shown = PAGE_SIZE;
   state.sort = null; // each section starts at its sensible default sort
   clearSearch();
   closeMenu();
@@ -428,10 +480,14 @@ function validateSubtype() {
 }
 
 // Every non-expired item in a category — the basis for that tab's feed,
-// subtype buttons, and deep-link validation.
+// subtype buttons, and deep-link validation. Research splits by freshness:
+// the tab shows fresh items normally, archived (60-day+) ones in Archive view.
 function liveItemsOfType(type) {
   return state.items.filter(
-    (it) => (it.type || "").toLowerCase() === type && !isExpired(it)
+    (it) =>
+      (it.type || "").toLowerCase() === type &&
+      !isExpired(it) &&
+      (type !== "research" || isArchivedResearch(it) === state.archive)
   );
 }
 
@@ -442,7 +498,9 @@ function filter() {
   const { type, subtype, q } = state;
   const out = state.items.filter((it) => {
     const typeOk = (it.type || "").toLowerCase() === type;
-    if (!typeOk || isExpired(it)) return false; // past events / deadlines drop off
+    if (!typeOk || isExpired(it)) return false; // past events / deadlines / stale headlines drop off
+    // Research: fresh feed vs Archive view, never both at once.
+    if (type === "research" && isArchivedResearch(it) !== state.archive) return false;
     const subOk = subtype === "all" || (it.subtype || "").trim() === subtype;
     const qOk =
       !q.trim() ||
@@ -681,11 +739,18 @@ function renderToolbar() {
   // No "All" pill — clicking a category filters, and the quiet Clear text
   // action beside the pills resets to everything (dimmed until a filter is on).
   const clearBtn = `<button type="button" class="tclear" data-subtype="all"${
-    state.subtype === "all" ? " disabled" : ""
+    state.subtype === "all" && !state.archive ? " disabled" : ""
   }>Clear</button>`;
+  // Research keeps its 60-day+ items behind an Archive toggle at the row's end.
+  const archiveBtn =
+    state.type === "research"
+      ? `<button type="button" class="tbtn tbtn--archive${
+          state.archive ? " is-active" : ""
+        }" data-archive aria-pressed="${state.archive}">Archive</button>`
+      : "";
   const catGroup = `
     <div class="tgroup tgroup--show" role="group" aria-label="Quick search by category">
-      <span class="tgroup__label">Quick Search</span>${catBtns}${clearBtn}
+      <span class="tgroup__label">Quick Search</span>${catBtns}${clearBtn}${archiveBtn}
     </div>`;
 
   bar.innerHTML = catGroup + sortGroup;
@@ -705,7 +770,7 @@ function syncToolbarHeight() {
 // Every tab renders as card rows: category pill above the title, source (and
 // medium / authors / date) below, expanding in place to the full blurb. The
 // right-hand value is the deadline (Opportunities) or the date.
-function renderFeedCards(results, colorFor) {
+function renderFeedCards(results, colorFor, total = results.length) {
   const isOpp = state.type === "opportunity";
   const expandable = (CARD_HEADERS[state.type] || {}).expand !== false;
   const cards = results
@@ -878,12 +943,26 @@ function renderFeedCards(results, colorFor) {
   return `
     <div class="feed feed--opp">
       <ul class="feed__list" role="list">${cards}</ul>
+      ${showMoreHTML(total)}
+    </div>`;
+}
+
+// "Show more" control under any list with pages left: quiet pill + a muted
+// running count, revealing PAGE_SIZE more rows in place per click.
+function showMoreHTML(total) {
+  if (total <= state.shown) return "";
+  const left = Math.min(PAGE_SIZE, total - state.shown);
+  return `
+    <div class="feed-more">
+      <button type="button" class="feed-more__btn" data-more>Show ${left} more</button>
+      <span class="feed-more__count">Showing ${Math.min(state.shown, total)} of ${total}</span>
     </div>`;
 }
 
 // Global search: match every live (non-expired) item in any section against
 // the query, newest first. Rows are flat links out to the source, tagged with
-// their section so you know where each hit lives.
+// their section so you know where each hit lives. Archived research counts —
+// it has aged out of the fresh feed, not out of the site.
 function renderSearch() {
   const head = $("#section-head");
   if (head) head.hidden = true;
@@ -918,6 +997,7 @@ function renderSearch() {
   NEWS_TABS.forEach((t) => (sectionLabel[t.value] = t.nav));
 
   const rows = results
+    .slice(0, state.shown)
     .map((it) => {
       const link = (it.link || "").trim();
       const source = (it.source || "").trim();
@@ -953,6 +1033,7 @@ function renderSearch() {
         <span class="feed__head-r"></span>
       </div>
       <ul class="feed__list" role="list">${rows}</ul>
+      ${showMoreHTML(results.length)}
     </div>`;
 }
 
@@ -1026,10 +1107,17 @@ function render() {
   // Section head: the tab's full title + one-line description.
   const headTab = NEWS_TABS.find((t) => t.value === state.type);
   const head = $("#section-head");
+  const archiveMode = state.type === "research" && state.archive;
   if (head) {
     head.hidden = !headTab;
     if (headTab) {
-      head.innerHTML = `<h2 class="section-head__title">${esc(headTab.label)}</h2><p class="section-head__desc">${esc(headTab.desc)}</p>`;
+      head.innerHTML = `<h2 class="section-head__title">${esc(headTab.label)}${
+        archiveMode ? " — Archive" : ""
+      }</h2><p class="section-head__desc">${esc(
+        archiveMode
+          ? "Research published more than 60 days ago. Everything here still shows up in search."
+          : headTab.desc
+      )}</p>`;
     }
   }
 
@@ -1059,13 +1147,17 @@ function render() {
   if (results.length === 0) {
     list.innerHTML = `
       <div class="state">
-        <strong>No matching updates</strong>
+        <strong>${archiveMode ? "Nothing in the archive yet" : "No matching updates"}</strong>
         Try clearing filters or picking a different category.
       </div>`;
     return;
   }
 
-  list.innerHTML = renderFeedCards(results, colorFor);
+  list.innerHTML = renderFeedCards(
+    results.slice(0, state.shown),
+    colorFor,
+    results.length
+  );
 }
 
 // Toggle one item's detail via its caret button (the accessible expand
@@ -1091,13 +1183,17 @@ async function loadCSV(path) {
   // no-store so an edited CSV always shows up on refresh.
   const res = await fetch(path, { cache: "no-store" });
   if (!res.ok) throw new Error(`${path} → HTTP ${res.status}`);
-  return parseCSV(await res.text());
+  return {
+    rows: parseCSV(await res.text()),
+    modified: res.headers.get("last-modified"),
+  };
 }
 
 async function boot() {
   readURL();
   try {
-    init(await loadCSV(NEWS_CSV));
+    const { rows, modified } = await loadCSV(NEWS_CSV);
+    init(rows, modified);
   } catch (err) {
     // Most common cause: opened as file:// so fetch() is blocked.
     $("#news-list").innerHTML = `

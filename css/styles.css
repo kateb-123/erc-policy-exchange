@@ -1091,3 +1091,40 @@ main {
     scroll-behavior: auto !important;
   }
 }
+/* "Show more" pagination: a quiet centered pill under the list, with a muted
+   running count beside it. Same pill language as the toolbar buttons. */
+.feed-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-top: 1px solid var(--line-soft);
+}
+.feed-more__btn {
+  appearance: none;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 20px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.feed-more__btn:hover {
+  border-color: var(--maroon);
+  color: var(--maroon);
+}
+.feed-more__count {
+  font-size: 0.8rem;
+  color: var(--faint);
+}
+
+/* Research's Archive toggle: rides at the end of the Quick Search pill row,
+   set off by a little extra gap so it reads as a view switch, not a filter. */
+.tbtn--archive {
+  margin-left: 14px;
+}
