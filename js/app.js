@@ -61,9 +61,16 @@ const NEWS_TABS = [
 const HOME_ICON =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75"/></svg>';
 
+// A Date as a LOCAL YYYY-MM-DD. (toISOString() is UTC, which from 7 pm Central
+// already reads as tomorrow, so today's events and deadlines dropped early.)
+const localISO = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate()
+  ).padStart(2, "0")}`;
+
 // Today (YYYY-MM-DD). Upcoming Events drop off automatically once their date
 // passes, so the feed stays current with no manual pruning.
-const TODAY = new Date().toISOString().slice(0, 10);
+const TODAY = localISO(new Date());
 const isPastEvent = (it) =>
   (it.type || "").toLowerCase() === "event" && (it.date || "") < TODAY;
 
@@ -74,7 +81,7 @@ const isPastEvent = (it) =>
 const CUTOFF = (() => {
   const d = new Date();
   d.setDate(d.getDate() - 60);
-  return d.toISOString().slice(0, 10);
+  return localISO(d);
 })();
 const isStaleHeadline = (it) =>
   (it.type || "").toLowerCase() === "headline" && (it.date || "") < CUTOFF;
@@ -1195,17 +1202,25 @@ async function boot() {
     const { rows, modified } = await loadCSV(NEWS_CSV);
     init(rows, modified);
   } catch (err) {
-    // Most common cause: opened as file:// so fetch() is blocked.
+    // The feed is the whole page, so a failed load has to be visible: the
+    // section container starts hidden and nothing else would ever show it.
+    // Visitors get plain words; the developer hint only appears when the page
+    // was opened straight from the file system (fetch is blocked there).
+    $("#landing").hidden = true;
+    $("#section").hidden = false;
+    const isFile = window.location.protocol === "file:";
     $("#news-list").innerHTML = `
-      <div class="state">
-        <strong>Couldn't load the feed data</strong>
-        This app needs to be served over http, not opened directly from the
-        file system.<br /><br />
-        From the project folder, run
-        <code>python3 -m http.server 8000</code>
-        then visit <code>http://localhost:8000</code>.
-        <br /><br />
-        <span style="font-size:.85em;color:#999">(${esc(err.message)})</span>
+      <div class="state" role="alert">
+        <strong>The feed didn't load</strong>
+        ${
+          isFile
+            ? `This page needs to be served over http, not opened from the file
+               system. From the project folder, run
+               <code>python3 -m http.server 8000</code> and visit
+               <code>http://localhost:8000</code>.`
+            : `Reload the page to try again. If it keeps happening, email
+               <a href="mailto:erc@tamu.edu">erc@tamu.edu</a>.`
+        }
       </div>`;
     console.error(err);
   }
