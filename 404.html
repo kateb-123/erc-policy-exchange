@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ERC Policy Exchange</title>
+  <link rel="canonical" href="https://erc-policy-exchange.vercel.app/" />
+  <meta name="robots" content="noindex" />
+  <meta http-equiv="refresh" content="0; url=https://erc-policy-exchange.vercel.app/" />
+  <style>
+    body { font-family: "Open Sans", system-ui, sans-serif; color: #202020; margin: 0;
+           display: grid; place-items: center; min-height: 100vh; padding: 24px; text-align: center; }
+    a { color: #4F001A; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <!-- The Exchange moved. This page only forwards; the site itself is at the
+       address below. The path and query are carried across, so a link to a
+       section or to /share/ lands in the same place. -->
+  <p>The ERC Policy Exchange has moved to
+     <a id="to" href="https://erc-policy-exchange.vercel.app/">erc-policy-exchange.vercel.app</a>.</p>
+<script>
+(function () {
+  var BASE = 'https://erc-policy-exchange.vercel.app';
+  var PREFIX = '/erc-policy-exchange';
+  var path = location.pathname;
+  if (path.indexOf(PREFIX) === 0) path = path.slice(PREFIX.length);
+  if (path.charAt(0) !== '/') path = '/' + path;
+  var url = BASE + path + location.search + location.hash;
+  document.getElementById('to').href = url;
+  location.replace(url);
+})();
+</script>
+</body>
+</html>
