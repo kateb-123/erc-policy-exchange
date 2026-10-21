@@ -195,7 +195,10 @@ function readURL() {
   state.archive = p.get("archive") === "1";
 }
 
-function writeURL() {
+// push=true for a view change (home, a section, search, a brief): those become
+// history entries so the browser's Back button works inside the app. Filter
+// and sort tweaks replace the current entry in place.
+function writeURL(push = false) {
   const p = new URLSearchParams();
   // Search carries ?q=; a section carries ?type=; home is a clean URL.
   if (state.view === "search") {
@@ -209,7 +212,9 @@ function writeURL() {
   }
   const qs = p.toString();
   const url = qs ? `${window.location.pathname}?${qs}` : window.location.pathname;
-  window.history.replaceState(null, "", url);
+  const current = window.location.pathname + window.location.search;
+  if (push && url !== current) window.history.pushState(null, "", url);
+  else window.history.replaceState(null, "", url);
 }
 
 /* ------------------------------------------------------------
@@ -243,6 +248,7 @@ function init(rows, modified) {
   gs.value = state.q;
   gs.addEventListener("input", (e) => {
     const q = e.target.value;
+    const wasView = state.view; // entering/leaving search is a history entry
     state.shown = PAGE_SIZE; // a new query starts at the first page
     if (q.trim()) {
       if (state.view !== "search") {
@@ -259,7 +265,21 @@ function init(rows, modified) {
       }
     }
     render();
-    writeURL();
+    writeURL(state.view !== wasView);
+  });
+
+  // Browser Back/Forward: the URL is the source of truth, so rebuild state
+  // from it and re-render (no writeURL here).
+  window.addEventListener("popstate", () => {
+    readURL();
+    validateSubtype();
+    state.searchFrom = null;
+    state.shown = PAGE_SIZE;
+    state.sort = null;
+    gs.value = state.q;
+    closeMenu();
+    render();
+    window.scrollTo(0, 0);
   });
 
   // Card-tab toolbar: sort text actions + category "view" buttons. The
@@ -422,7 +442,7 @@ function setType(type) {
   clearSearch();
   closeMenu();
   render();
-  writeURL();
+  writeURL(true);
   window.scrollTo(0, 0);
 }
 
@@ -432,7 +452,7 @@ function setHome() {
   clearSearch();
   closeMenu();
   render();
-  writeURL();
+  writeURL(true);
   window.scrollTo(0, 0);
 }
 
@@ -1080,7 +1100,7 @@ function openBrief(id, title) {
   clearSearch();
   closeMenu();
   render();
-  writeURL();
+  writeURL(true);
   window.scrollTo(0, 0);
 }
 
